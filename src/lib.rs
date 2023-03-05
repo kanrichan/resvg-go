@@ -29,6 +29,11 @@ pub fn database_load_font_data(db: *mut fontdb::Database, data_ptr: *mut u8, dat
     let mut box_db = unsafe { Box::from_raw(db) };
     let box_data = unsafe { Vec::from_raw_parts(data_ptr, data_size, data_size) };
     box_db.load_font_data(box_data.clone());
+    box_db.set_serif_family(String::from("Source Han Serif CN Light"));
+    box_db.set_sans_serif_family(String::from("Source Han Serif CN Light"));
+    box_db.set_cursive_family(String::from("Source Han Serif CN Light"));
+    box_db.set_fantasy_family(String::from("Source Han Serif CN Light"));
+    box_db.set_monospace_family(String::from("Source Han Serif CN Light"));
     std::mem::forget(box_db);
     std::mem::forget(box_data);
 }
@@ -130,6 +135,17 @@ pub fn option_default() -> *mut usvg::Options {
     ptr
 }
 
+#[cfg_attr(all(target_arch = "wasm32"), export_name = "__floattech_option_set_font_family")]
+#[no_mangle]
+pub fn option_set_font_family(opt: *mut usvg::Options, font_family_ptr: *mut u8, font_family_size: usize) {
+    let mut box_opt = unsafe { Box::from_raw(opt) };
+    let box_font_family = unsafe { String::from_raw_parts(font_family_ptr, font_family_size, font_family_size) };
+    box_opt.font_family = box_font_family.clone();
+    box_opt.font_size = 12.0;
+    std::mem::forget(box_opt);
+    std::mem::forget(box_font_family);
+}
+
 #[cfg_attr(all(target_arch = "wasm32"), export_name = "__floattech_option_set_default_size")]
 #[no_mangle]
 pub fn option_set_default_size(opt: *mut usvg::Options, size: *mut usvg::Size) {
@@ -166,6 +182,15 @@ pub fn tree_convert_text(tree: *mut usvg::Tree, db: *mut fontdb::Database, keep_
     box_tree.convert_text(&box_db, keep_named_groups);
     std::mem::forget(box_tree);
     std::mem::forget(box_db);
+}
+
+#[cfg_attr(all(target_arch = "wasm32"), export_name = "__floattech_tree_get_size")]
+#[no_mangle]
+pub fn tree_get_size(tree: *mut usvg::Tree) -> *mut usvg::Size {
+    let box_tree = unsafe { Box::from_raw(tree) };
+    let ptr = Box::into_raw(box_tree.size.clone().into());
+    std::mem::forget(box_tree);
+    ptr
 }
 
 #[cfg_attr(all(target_arch = "wasm32"), export_name = "__floattech_tree_free")]
