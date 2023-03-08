@@ -1,4 +1,4 @@
-package main
+package resvg
 
 import (
 	"archive/zip"
@@ -50,11 +50,11 @@ func init() {
 var funcTreeRender = wasi.ExportedFunction("__floattech_render")
 
 // Render Render
-func Render(o *Tree, pixmap *Pixmap) error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
+func Render(tree *Tree, pixmap *Pixmap) error {
 	_, err := funcTreeRender.Call(
-		ctx, api.EncodeI32(*o.ptr), api.EncodeI32(*pixmap.ptr))
+		ctx,
+		api.EncodeI32(int32(*tree)),
+		api.EncodeI32(int32(*pixmap)),
+	)
 	return err
 }

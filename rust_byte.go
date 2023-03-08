@@ -1,4 +1,4 @@
-package main
+package resvg
 
 import (
 	"encoding/binary"
@@ -9,7 +9,7 @@ import (
 
 // RustBytes RustBytes
 type RustBytes struct {
-	ptr *int32
+	ptr int32
 	len int32
 }
 
@@ -23,8 +23,7 @@ func NewRustBytes(size int32) (*RustBytes, error) {
 	if err != nil {
 		return nil, err
 	}
-	var o = &RustBytes{ptr: new(int32), len: size}
-	*o.ptr = api.DecodeI32(r[0])
+	o := &RustBytes{ptr: api.DecodeI32(r[0]), len: size}
 	runtime.SetFinalizer(o, func(o *RustBytes) {
 		o.Free()
 	})
@@ -32,10 +31,7 @@ func NewRustBytes(size int32) (*RustBytes, error) {
 }
 
 func (o *RustBytes) Read() ([]byte, error) {
-	if o.ptr == nil {
-		return nil, ErrNullWasmPointer
-	}
-	data, f := wasi.Memory().Read(uint32(*o.ptr), uint32(o.len))
+	data, f := wasi.Memory().Read(uint32(o.ptr), uint32(o.len))
 	if !f {
 		return nil, ErrOutOfRange
 	}
@@ -43,10 +39,7 @@ func (o *RustBytes) Read() ([]byte, error) {
 }
 
 func (o *RustBytes) Write(data []byte) error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
-	if !wasi.Memory().Write(uint32(*o.ptr), []byte(data)) {
+	if !wasi.Memory().Write(uint32(o.ptr), []byte(data)) {
 		return ErrOutOfRange
 	}
 	return nil
@@ -54,20 +47,13 @@ func (o *RustBytes) Write(data []byte) error {
 
 // Free Free
 func (o *RustBytes) Free() error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
-	if _, err := funcRustByteFree.Call(
-		ctx, uint64(*o.ptr), uint64(o.len)); err != nil {
-		return err
-	}
-	o.ptr = nil
-	return nil
+	_, err := funcRustByteFree.Call(ctx, uint64(o.ptr), uint64(o.len))
+	return err
 }
 
 // RustBytesPointer RustBytesPointer
 type RustBytesPointer struct {
-	ptr *int32
+	ptr int32
 	o   *RustBytes
 }
 
@@ -77,8 +63,7 @@ func NewRustBytesPointer() (*RustBytesPointer, error) {
 	if err != nil {
 		return nil, err
 	}
-	var o = &RustBytesPointer{ptr: new(int32)}
-	*o.ptr = api.DecodeI32(r[0])
+	o := &RustBytesPointer{ptr: api.DecodeI32(r[0])}
 	runtime.SetFinalizer(o, func(o *RustBytes) {
 		o.Free()
 	})
@@ -86,9 +71,6 @@ func NewRustBytesPointer() (*RustBytesPointer, error) {
 }
 
 func (o *RustBytesPointer) Read() ([]byte, error) {
-	if o.ptr == nil {
-		return nil, ErrNullWasmPointer
-	}
 	err := o.binding()
 	if err != nil {
 		return nil, err
@@ -97,9 +79,6 @@ func (o *RustBytesPointer) Read() ([]byte, error) {
 }
 
 func (o *RustBytesPointer) Write(data []byte) error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
 	err := o.binding()
 	if err != nil {
 		return err
@@ -109,9 +88,6 @@ func (o *RustBytesPointer) Write(data []byte) error {
 
 // Free Free
 func (o *RustBytesPointer) Free() error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
 	err := o.binding()
 	if err != nil {
 		return err
@@ -120,33 +96,27 @@ func (o *RustBytesPointer) Free() error {
 	if err == nil {
 		return nil
 	}
-	_, err = funcRustByteFree.Call(
-		ctx, api.EncodeI32(*o.ptr), 8)
-	if err != nil {
-		return err
-	}
-	o.ptr = nil
-	return nil
+	_, err = funcRustByteFree.Call(ctx, api.EncodeI32(o.ptr), 8)
+	return err
 }
 
 func (o *RustBytesPointer) binding() error {
 	if o.o != nil {
 		return nil
 	}
-	ob, f := wasi.Memory().Read(uint32(*o.ptr), 4)
+	ob, f := wasi.Memory().Read(uint32(o.ptr), 4)
 	if !f {
 		return ErrOutOfRange
 	}
 	offset := binary.LittleEndian.Uint32(ob)
-	lb, f := wasi.Memory().Read(uint32(*o.ptr)+4, 4)
+	lb, f := wasi.Memory().Read(uint32(o.ptr)+4, 4)
 	if !f {
 		return ErrOutOfRange
 	}
 	length := binary.LittleEndian.Uint32(lb)
 	o.o = &RustBytes{
-		ptr: new(int32),
+		ptr: int32(offset),
 		len: int32(length),
 	}
-	*o.o.ptr = int32(offset)
 	return nil
 }
