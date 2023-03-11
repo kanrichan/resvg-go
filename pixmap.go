@@ -1,4 +1,4 @@
-package main
+package resvg
 
 import (
 	"runtime"
@@ -13,9 +13,7 @@ var (
 )
 
 // Pixmap Pixmap
-type Pixmap struct {
-	ptr *int32
-}
+type Pixmap int32
 
 // NewPixmap NewPixmap
 func NewPixmap(width uint32, height uint32) (*Pixmap, error) {
@@ -24,23 +22,24 @@ func NewPixmap(width uint32, height uint32) (*Pixmap, error) {
 	if err != nil {
 		return nil, err
 	}
-	var o = &Pixmap{ptr: new(int32)}
-	*o.ptr = api.DecodeI32(r[0])
-	runtime.SetFinalizer(o, func(o *Size) {
+	o := Pixmap(api.DecodeI32(r[0]))
+	runtime.SetFinalizer(&o, func(o *Pixmap) {
 		o.Free()
 	})
-	return o, nil
+	return &o, nil
 }
 
 // EncodePNG EncodePNG
-func (o Pixmap) EncodePNG() ([]byte, error) {
+func (o *Pixmap) EncodePNG() ([]byte, error) {
 	rb, err := NewRustBytesPointer()
 	if err != nil {
 		return nil, err
 	}
 	defer rb.Free()
 	_, err = funcPixmapEncodePNG.Call(
-		ctx, api.EncodeI32(*rb.ptr), api.EncodeI32(*o.ptr))
+		ctx, api.EncodeI32(rb.ptr),
+		api.EncodeI32(int32(*o)),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -48,14 +47,7 @@ func (o Pixmap) EncodePNG() ([]byte, error) {
 }
 
 // Free Free
-func (o Pixmap) Free() error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
-	if _, err := funcPixmapFree.Call(
-		ctx, uint64(*o.ptr)); err != nil {
-		return err
-	}
-	o.ptr = nil
-	return nil
+func (o *Pixmap) Free() error {
+	_, err := funcPixmapFree.Call(ctx, uint64(*o))
+	return err
 }

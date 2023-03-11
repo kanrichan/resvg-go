@@ -1,4 +1,4 @@
-package main
+package resvg
 
 import (
 	"runtime"
@@ -14,9 +14,7 @@ var (
 )
 
 // Tree Tree
-type Tree struct {
-	ptr *int32
-}
+type Tree int32
 
 // TreeFromData TreeFromData
 func TreeFromData(data []byte, opt *Options) (*Tree, error) {
@@ -30,58 +28,48 @@ func TreeFromData(data []byte, opt *Options) (*Tree, error) {
 		return nil, err
 	}
 	r, err := funcTreeFromData.Call(
-		ctx, api.EncodeI32(*rb.ptr), api.EncodeI32(rb.len), api.EncodeI32(*opt.ptr))
+		ctx, api.EncodeI32(rb.ptr),
+		api.EncodeI32(rb.len),
+		api.EncodeI32(int32(*opt)))
 	if err != nil {
 		return nil, err
 	}
-	var o = &Tree{ptr: new(int32)}
-	*o.ptr = api.DecodeI32(r[0])
-	runtime.SetFinalizer(o, func(o *Tree) {
+	o := Tree(api.DecodeI32(r[0]))
+	runtime.SetFinalizer(&o, func(o *Tree) {
 		o.Free()
 	})
-	return o, nil
+	return &o, nil
 }
 
 // ConvertText ConvertText
 func (o *Tree) ConvertText(db *FontDatabase, keepNamedGroups bool) error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
 	f := int32(0)
 	if keepNamedGroups {
 		f = 1
 	}
 	_, err := funcTreeConvertText.Call(
-		ctx, api.EncodeI32(*o.ptr), api.EncodeI32(*db.ptr), api.EncodeI32(f))
+		ctx, api.EncodeI32(int32(*o)),
+		api.EncodeI32(int32(*db)),
+		api.EncodeI32(f),
+	)
 	return err
 }
 
 // GetSize GetSize
 func (o *Tree) GetSize() (*Size, error) {
-	if o.ptr == nil {
-		return nil, ErrNullWasmPointer
-	}
-	r, err := funcTreeGetSize.Call(ctx, api.EncodeI32(*o.ptr))
+	r, err := funcTreeGetSize.Call(ctx, api.EncodeI32(int32(*o)))
 	if err != nil {
 		return nil, err
 	}
-	var oo = &Size{ptr: new(int32)}
-	*oo.ptr = api.DecodeI32(r[0])
-	runtime.SetFinalizer(oo, func(oo *Size) {
+	oo := Size(api.DecodeI32(r[0]))
+	runtime.SetFinalizer(&oo, func(oo *Size) {
 		oo.Free()
 	})
-	return oo, nil
+	return &oo, nil
 }
 
 // Free Free
 func (o *Tree) Free() error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
-	if _, err := funcTreeFree.Call(
-		ctx, uint64(*o.ptr)); err != nil {
-		return err
-	}
-	o.ptr = nil
-	return nil
+	_, err := funcTreeFree.Call(ctx, uint64(*o))
+	return err
 }

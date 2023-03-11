@@ -1,4 +1,4 @@
-package main
+package resvg
 
 import (
 	"runtime"
@@ -14,9 +14,7 @@ var (
 )
 
 // FontDatabase FontDatabase
-type FontDatabase struct {
-	ptr *int32
-}
+type FontDatabase int32
 
 // NewFontDatabase NewFontDatabase
 func NewFontDatabase() (*FontDatabase, error) {
@@ -24,19 +22,15 @@ func NewFontDatabase() (*FontDatabase, error) {
 	if err != nil {
 		return nil, err
 	}
-	var o = &FontDatabase{ptr: new(int32)}
-	*o.ptr = api.DecodeI32(r[0])
-	runtime.SetFinalizer(o, func(o *FontDatabase) {
+	o := FontDatabase(api.DecodeI32(r[0]))
+	runtime.SetFinalizer(&o, func(o *FontDatabase) {
 		o.Free()
 	})
-	return o, nil
+	return &o, nil
 }
 
 // LoadFontData LoadFontData
 func (o *FontDatabase) LoadFontData(data []byte) error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
 	rb, err := NewRustBytes(int32(len(data)))
 	if err != nil {
 		return err
@@ -47,16 +41,16 @@ func (o *FontDatabase) LoadFontData(data []byte) error {
 		return err
 	}
 	_, err = funcFontDatabaseLoadFontData.Call(
-		ctx, api.EncodeI32(*o.ptr), api.EncodeI32(*rb.ptr), api.EncodeI32(rb.len))
+		ctx, api.EncodeI32(int32(*o)),
+		api.EncodeI32(rb.ptr),
+		api.EncodeI32(rb.len),
+	)
 	return err
 }
 
 // Len Len
 func (o *FontDatabase) Len() (int32, error) {
-	if o.ptr == nil {
-		return 0, ErrNullWasmPointer
-	}
-	r, err := funcFontDatabaseLen.Call(ctx, api.EncodeI32(*o.ptr))
+	r, err := funcFontDatabaseLen.Call(ctx, api.EncodeI32(int32(*o)))
 	if err != nil {
 		return 0, err
 	}
@@ -65,13 +59,6 @@ func (o *FontDatabase) Len() (int32, error) {
 
 // Free Free
 func (o *FontDatabase) Free() error {
-	if o.ptr == nil {
-		return ErrNullWasmPointer
-	}
-	if _, err := funcFontDatabaseFree.Call(
-		ctx, uint64(*o.ptr)); err != nil {
-		return err
-	}
-	o.ptr = nil
-	return nil
+	_, err := funcFontDatabaseFree.Call(ctx, uint64(*o))
+	return err
 }
