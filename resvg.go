@@ -75,10 +75,6 @@ func (inst *instance) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTra
 }
 
 func (inst *instance) DefaultResvgRenderToPNG(svg []byte, font ...[]byte) ([]byte, error) {
-	inst, err := DefaultResvg()
-	if err != nil {
-		return nil, err
-	}
 	opt, err := inst.UsvgOptionsDefault()
 	if err != nil {
 		return nil, err
