@@ -21,40 +21,55 @@ import (
 var wasmzip []byte
 var wasmzr, _ = zip.NewReader(bytes.NewReader(wasmzip), int64(len(wasmzip)))
 
-var (
-	ctx  = context.Background()
-	wasi api.Module
+// instance instance
+type instance struct {
+	ctx context.Context
+	mod api.Module
+}
 
+var (
 	// ErrOutOfRange wasm memory out of range
 	ErrOutOfRange = errors.New("wasm memory out of range")
 	// ErrNullWasmPointer null wasm pointer
 	ErrNullWasmPointer = errors.New("null wasm pointer")
 )
 
-func init() {
+// DefaultResvg DefaultResvg
+// instance
+func DefaultResvg() (*instance, error) {
+	ctx := context.Background()
 	r := wazero.NewRuntime(ctx)
 	f, err := wasmzr.Open("resvg_go.wasm")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	wasm, err := io.ReadAll(f)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	wasi, err = r.Instantiate(ctx, wasm)
+	inst, err := r.Instantiate(ctx, wasm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	return &instance{ctx, inst}, nil
 }
 
-var funcTreeRender = wasi.ExportedFunction("__floattech_render")
-
-// Render Render
-func Render(tree *Tree, pixmap *Pixmap) error {
-	_, err := funcTreeRender.Call(
-		ctx,
-		api.EncodeI32(int32(*tree)),
-		api.EncodeI32(int32(*pixmap)),
+func (inst *instance) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTransform, pixmap *TinySkiaPixmap) error {
+	if tree.free || ft.free || tf.free || pixmap.free {
+		return ErrNullWasmPointer
+	}
+	fn := inst.mod.ExportedFunction("__resvg_render")
+	_, err := fn.Call(
+		inst.ctx,
+		api.EncodeI32(tree.ptr),
+		api.EncodeI32(ft.ptr),
+		api.EncodeI32(tf.ptr),
+		api.EncodeI32(pixmap.ptr),
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	ft.free = true
+	tf.free = true
+	return nil
 }

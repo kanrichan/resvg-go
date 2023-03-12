@@ -16,6 +16,7 @@ func main() {
 	fmt.Println("Run cargo build --release --target wasm32-unknown-unknown ...")
 	carcmd := exec.Command("cargo", "build", "--release", "--target", "wasm32-unknown-unknown")
 	carcmd.Stdout = os.Stdout
+	carcmd.Stderr = os.Stderr
 	err := carcmd.Run()
 	if err != nil {
 		panic(err)
