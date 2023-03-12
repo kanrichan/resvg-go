@@ -6,11 +6,11 @@ import "github.com/tetratelabs/wazero/api"
 type UsvgOptions struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // UsvgOptionsDefault UsvgOptionsDefault
-func (inst *instance) UsvgOptionsDefault() (*UsvgOptions, error) {
+func (inst *Resvg) UsvgOptionsDefault() (*UsvgOptions, error) {
 	fn := inst.mod.ExportedFunction("__usvg_options_default")
 	r, err := fn.Call(inst.ctx)
 	if err != nil {

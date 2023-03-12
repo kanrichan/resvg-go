@@ -21,8 +21,8 @@ import (
 var wasmzip []byte
 var wasmzr, _ = zip.NewReader(bytes.NewReader(wasmzip), int64(len(wasmzip)))
 
-// instance instance
-type instance struct {
+// Resvg Resvg
+type Resvg struct {
 	ctx context.Context
 	mod api.Module
 }
@@ -34,9 +34,9 @@ var (
 	ErrNullWasmPointer = errors.New("null wasm pointer")
 )
 
-// DefaultResvg DefaultResvg
+// NewResvg NewResvg
 // instance
-func DefaultResvg() (*instance, error) {
+func NewResvg() (*Resvg, error) {
 	ctx := context.Background()
 	r := wazero.NewRuntime(ctx)
 	f, err := wasmzr.Open("resvg_go.wasm")
@@ -51,10 +51,10 @@ func DefaultResvg() (*instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &instance{ctx, inst}, nil
+	return &Resvg{ctx, inst}, nil
 }
 
-func (inst *instance) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTransform, pixmap *TinySkiaPixmap) error {
+func (inst *Resvg) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTransform, pixmap *TinySkiaPixmap) error {
 	if tree.free || ft.free || tf.free || pixmap.free {
 		return ErrNullWasmPointer
 	}
@@ -74,7 +74,7 @@ func (inst *instance) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTra
 	return nil
 }
 
-func (inst *instance) DefaultResvgRenderToPNG(svg []byte, font ...[]byte) ([]byte, error) {
+func (inst *Resvg) DefaultResvgRenderToPNG(svg []byte, font ...[]byte) ([]byte, error) {
 	opt, err := inst.UsvgOptionsDefault()
 	if err != nil {
 		return nil, err

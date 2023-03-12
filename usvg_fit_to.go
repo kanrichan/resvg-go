@@ -6,11 +6,11 @@ import "github.com/tetratelabs/wazero/api"
 type UsvgFitTo struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // UsvgFitToOriginal UsvgFitToOriginal
-func (inst *instance) UsvgFitToOriginal() (*UsvgFitTo, error) {
+func (inst *Resvg) UsvgFitToOriginal() (*UsvgFitTo, error) {
 	fn := inst.mod.ExportedFunction("__usvg_fit_to_original")
 	r, err := fn.Call(inst.ctx)
 	if err != nil {
@@ -20,7 +20,7 @@ func (inst *instance) UsvgFitToOriginal() (*UsvgFitTo, error) {
 }
 
 // UsvgFitToWidth UsvgFitToWidth
-func (inst *instance) UsvgFitToWidth(width uint32) (*UsvgFitTo, error) {
+func (inst *Resvg) UsvgFitToWidth(width uint32) (*UsvgFitTo, error) {
 	fn := inst.mod.ExportedFunction("__usvg_fit_to_width")
 	r, err := fn.Call(inst.ctx, api.EncodeU32(width))
 	if err != nil {
@@ -30,7 +30,7 @@ func (inst *instance) UsvgFitToWidth(width uint32) (*UsvgFitTo, error) {
 }
 
 // UsvgFitToHeight UsvgFitToHeight
-func (inst *instance) UsvgFitToHeight(height uint32) (*UsvgFitTo, error) {
+func (inst *Resvg) UsvgFitToHeight(height uint32) (*UsvgFitTo, error) {
 	fn := inst.mod.ExportedFunction("__usvg_fit_to_height")
 	r, err := fn.Call(inst.ctx, api.EncodeU32(height))
 	if err != nil {
@@ -40,7 +40,7 @@ func (inst *instance) UsvgFitToHeight(height uint32) (*UsvgFitTo, error) {
 }
 
 // UsvgFitToSize UsvgFitToSize
-func (inst *instance) UsvgFitToSize(width, height uint32) (*UsvgFitTo, error) {
+func (inst *Resvg) UsvgFitToSize(width, height uint32) (*UsvgFitTo, error) {
 	fn := inst.mod.ExportedFunction("__usvg_fit_to_size")
 	r, err := fn.Call(inst.ctx, api.EncodeU32(width), api.EncodeU32(height))
 	if err != nil {
@@ -50,7 +50,7 @@ func (inst *instance) UsvgFitToSize(width, height uint32) (*UsvgFitTo, error) {
 }
 
 // UsvgFitToZoom UsvgFitToZoom
-func (inst *instance) UsvgFitToZoom(zoom float32) (*UsvgFitTo, error) {
+func (inst *Resvg) UsvgFitToZoom(zoom float32) (*UsvgFitTo, error) {
 	fn := inst.mod.ExportedFunction("__usvg_fit_to_zoom")
 	r, err := fn.Call(inst.ctx, api.EncodeF32(zoom))
 	if err != nil {

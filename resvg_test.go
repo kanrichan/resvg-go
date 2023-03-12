@@ -11,7 +11,7 @@ var svg = []byte(
 </svg>`)
 
 func TestRustBytes(t *testing.T) {
-	inst, err := DefaultResvg()
+	inst, err := NewResvg()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestRustBytes(t *testing.T) {
 }
 
 func TestRustBytesPointer(t *testing.T) {
-	inst, err := DefaultResvg()
+	inst, err := NewResvg()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestRustBytesPointer(t *testing.T) {
 }
 
 func TestResvgRender(t *testing.T) {
-	inst, err := DefaultResvg()
+	inst, err := NewResvg()
 	if err != nil {
 		t.Fatal(err)
 	}

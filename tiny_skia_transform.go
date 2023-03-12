@@ -6,11 +6,11 @@ import "github.com/tetratelabs/wazero/api"
 type TinySkiaTransform struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // TinySkiaTransformDefault TinySkiaTransformDefault
-func (inst *instance) TinySkiaTransformDefault() (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformDefault() (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_default")
 	r, err := fn.Call(inst.ctx)
 	if err != nil {
@@ -20,7 +20,7 @@ func (inst *instance) TinySkiaTransformDefault() (*TinySkiaTransform, error) {
 }
 
 // TinySkiaTransformFromRow TinySkiaTransformFromRow
-func (inst *instance) TinySkiaTransformFromRow(sx, ky, kx, sy, tx, ty float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromRow(sx, ky, kx, sy, tx, ty float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_row")
 	r, err := fn.Call(
 		inst.ctx,
@@ -38,7 +38,7 @@ func (inst *instance) TinySkiaTransformFromRow(sx, ky, kx, sy, tx, ty float32) (
 }
 
 // TinySkiaTransformFromTranslate TinySkiaTransformFromTranslate
-func (inst *instance) TinySkiaTransformFromTranslate(tx, ty float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromTranslate(tx, ty float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_translate")
 	r, err := fn.Call(
 		inst.ctx,
@@ -52,7 +52,7 @@ func (inst *instance) TinySkiaTransformFromTranslate(tx, ty float32) (*TinySkiaT
 }
 
 // TinySkiaTransformFromScale TinySkiaTransformFromScale
-func (inst *instance) TinySkiaTransformFromScale(sx, sy float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromScale(sx, sy float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_scale")
 	r, err := fn.Call(
 		inst.ctx,
@@ -66,7 +66,7 @@ func (inst *instance) TinySkiaTransformFromScale(sx, sy float32) (*TinySkiaTrans
 }
 
 // TinySkiaTransformFromSkew TinySkiaTransformFromSkew
-func (inst *instance) TinySkiaTransformFromSkew(kx, ky float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromSkew(kx, ky float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_skew")
 	r, err := fn.Call(
 		inst.ctx,
@@ -80,7 +80,7 @@ func (inst *instance) TinySkiaTransformFromSkew(kx, ky float32) (*TinySkiaTransf
 }
 
 // TinySkiaTransformFromRotate TinySkiaTransformFromRotate
-func (inst *instance) TinySkiaTransformFromRotate(angle float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromRotate(angle float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_rotate")
 	r, err := fn.Call(
 		inst.ctx,
@@ -93,7 +93,7 @@ func (inst *instance) TinySkiaTransformFromRotate(angle float32) (*TinySkiaTrans
 }
 
 // TinySkiaTransformFromRotate TinySkiaTransformFromRotate
-func (inst *instance) TinySkiaTransformFromRotateAt(angle, tx, ty float32) (*TinySkiaTransform, error) {
+func (inst *Resvg) TinySkiaTransformFromRotateAt(angle, tx, ty float32) (*TinySkiaTransform, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_transform_from_rotate_at")
 	r, err := fn.Call(
 		inst.ctx,

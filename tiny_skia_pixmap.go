@@ -8,11 +8,11 @@ import (
 type TinySkiaPixmap struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // NewTinySkiaPixmap NewTinySkiaPixmap
-func (inst *instance) NewTinySkiaPixmap(width, height uint32) (*TinySkiaPixmap, error) {
+func (inst *Resvg) NewTinySkiaPixmap(width, height uint32) (*TinySkiaPixmap, error) {
 	fn := inst.mod.ExportedFunction("__tiny_skia_pixmap_new")
 	r, err := fn.Call(
 		inst.ctx,

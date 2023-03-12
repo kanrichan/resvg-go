@@ -11,11 +11,11 @@ type RustBytes struct {
 	ptr  int32
 	len  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // NewRustBytes RustBytes
-func (inst *instance) NewRustBytes(size int32) (*RustBytes, error) {
+func (inst *Resvg) NewRustBytes(size int32) (*RustBytes, error) {
 	fn := inst.mod.ExportedFunction("__rust_bytes_new")
 	r, err := fn.Call(inst.ctx, api.EncodeI32(size))
 	if err != nil {
@@ -64,7 +64,7 @@ type RustBytesPointer struct {
 }
 
 // NewRustBytesPointer NewRustBytesPointer
-func (inst *instance) NewRustBytesPointer() (*RustBytesPointer, error) {
+func (inst *Resvg) NewRustBytesPointer() (*RustBytesPointer, error) {
 	s, err := inst.NewRustBytes(8)
 	return &RustBytesPointer{s, nil}, err
 }

@@ -6,11 +6,11 @@ import "github.com/tetratelabs/wazero/api"
 type UsvgSize struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // NewUsvgSize NewUsvgSize
-func (inst *instance) NewUsvgSize(width, height float64) (*UsvgSize, error) {
+func (inst *Resvg) NewUsvgSize(width, height float64) (*UsvgSize, error) {
 	fn := inst.mod.ExportedFunction("__usvg_size_new")
 	r, err := fn.Call(
 		inst.ctx,
