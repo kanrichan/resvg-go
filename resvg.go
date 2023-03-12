@@ -73,3 +73,75 @@ func (inst *instance) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTra
 	tf.free = true
 	return nil
 }
+
+func (inst *instance) DefaultResvgRenderToPNG(svg []byte, font ...[]byte) ([]byte, error) {
+	inst, err := DefaultResvg()
+	if err != nil {
+		return nil, err
+	}
+	opt, err := inst.UsvgOptionsDefault()
+	if err != nil {
+		return nil, err
+	}
+	defer opt.Free()
+	tree, err := inst.UsvgTreeFromData(svg, opt)
+	if err != nil {
+		return nil, err
+	}
+	defer tree.Free()
+	db, err := inst.NewFontdbDatabase()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Free()
+	for i := range font {
+		err = db.LoadFontData(font[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = tree.ConvertText(db, true)
+	if err != nil {
+		return nil, err
+	}
+	ft, err := inst.UsvgFitToZoom(1.0)
+	if err != nil {
+		return nil, err
+	}
+	tf, err := inst.TinySkiaTransformDefault()
+	if err != nil {
+		return nil, err
+	}
+	size, err := tree.GetSizeClone()
+	if err != nil {
+		return nil, err
+	}
+	defer size.Free()
+	screenSize, err := size.ToScreenSize()
+	if err != nil {
+		return nil, err
+	}
+	defer screenSize.Free()
+	width, err := screenSize.Width()
+	if err != nil {
+		return nil, err
+	}
+	height, err := screenSize.Height()
+	if err != nil {
+		return nil, err
+	}
+	pixmap, err := inst.NewTinySkiaPixmap(width, height)
+	if err != nil {
+		return nil, err
+	}
+	defer pixmap.Free()
+	err = inst.ResvgRender(tree, ft, tf, pixmap)
+	if err != nil {
+		return nil, err
+	}
+	out, err := pixmap.EncodePNG()
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
