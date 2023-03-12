@@ -8,11 +8,11 @@ import (
 type UsvgTree struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // NewUsvgTree NewUsvgTree
-func (inst *instance) UsvgTreeFromData(data []byte, opt *UsvgOptions) (*UsvgTree, error) {
+func (inst *Resvg) UsvgTreeFromData(data []byte, opt *UsvgOptions) (*UsvgTree, error) {
 	rb, err := inst.NewRustBytes(int32(len(data)))
 	if err != nil {
 		return nil, err

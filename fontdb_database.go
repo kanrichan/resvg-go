@@ -8,11 +8,11 @@ import (
 type FontdbDatabase struct {
 	ptr  int32
 	free bool
-	inst *instance
+	inst *Resvg
 }
 
 // NewFontdbDatabase NewFontdbDatabase
-func (inst *instance) NewFontdbDatabase() (*FontdbDatabase, error) {
+func (inst *Resvg) NewFontdbDatabase() (*FontdbDatabase, error) {
 	fn := inst.mod.ExportedFunction("__fontdb_database_new")
 	r, err := fn.Call(inst.ctx)
 	if err != nil {
