@@ -7,3 +7,15 @@
   A SVG render written in Go & WASM depended on resvg without CGO<br><br>
   
 </div>
+
+
+## Example
+
+```go
+// initialize and don't forget to close!
+inst, _ := resvg.NewResvg()
+defer inst.Close()
+
+// render the SVG as a PNG!
+png, _ := inst.DefaultResvgRenderToPNG(svg)
+```

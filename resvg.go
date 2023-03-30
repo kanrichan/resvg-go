@@ -24,6 +24,7 @@ var wasmzr, _ = zip.NewReader(bytes.NewReader(wasmzip), int64(len(wasmzip)))
 // Resvg Resvg
 type Resvg struct {
 	ctx context.Context
+	r   wazero.Runtime
 	mod api.Module
 }
 
@@ -34,8 +35,7 @@ var (
 	ErrNullWasmPointer = errors.New("null wasm pointer")
 )
 
-// NewResvg NewResvg
-// instance
+// NewResvg creates a new Resvg instance.
 func NewResvg() (*Resvg, error) {
 	ctx := context.Background()
 	r := wazero.NewRuntime(ctx)
@@ -51,7 +51,12 @@ func NewResvg() (*Resvg, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Resvg{ctx, inst}, nil
+	return &Resvg{ctx, r, inst}, nil
+}
+
+// Close closes the WebAssembly runtime used by Resvg
+func (inst *Resvg) Close() error {
+	return inst.r.Close(inst.ctx)
 }
 
 func (inst *Resvg) ResvgRender(tree *UsvgTree, ft *UsvgFitTo, tf *TinySkiaTransform, pixmap *TinySkiaPixmap) error {
