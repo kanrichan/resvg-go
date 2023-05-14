@@ -15,6 +15,8 @@ func TestRustBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer inst.Close()
+
 	rb, err := inst.NewRustBytes(12)
 	if err != nil {
 		t.Fatal(err)
@@ -33,6 +35,8 @@ func TestRustBytesPointer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer inst.Close()
+
 	rb, err := inst.NewRustBytesPointer()
 	if err != nil {
 		t.Fatal(err)
@@ -47,14 +51,14 @@ func TestResvgRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer inst.Close()
+
 	out, err := inst.DefaultResvgRenderToPNG(svg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, err := os.OpenFile("out.png", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
+
+	if err = os.WriteFile("out.png", out, 0644); err != nil {
 		t.Fatal(err)
 	}
-	defer fi.Close()
-	fi.Write(out)
 }
