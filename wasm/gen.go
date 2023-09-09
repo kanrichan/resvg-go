@@ -1,7 +1,7 @@
 package main
 
 import (
-	"archive/zip"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	targetwasm = "target/wasm32-unknown-unknown/release/resvg_go.wasm"
+	targetwasm = "target/wasm32-wasi/release/resvg.wasm"
 )
 
 func main() {
-	fmt.Println("Run cargo build --release --target wasm32-unknown-unknown ...")
-	carcmd := exec.Command("cargo", "build", "--release", "--target", "wasm32-unknown-unknown")
+	fmt.Println("Run cargo build --release --target wasm32-wasi ...")
+	carcmd := exec.Command("cargo", "build", "--release", "--target", "wasm32-wasi")
 	carcmd.Stdout = os.Stdout
 	carcmd.Stderr = os.Stderr
 	err := carcmd.Run()
@@ -26,19 +26,19 @@ func main() {
 		panic(err)
 	}
 	defer tgt.Close()
-	fmt.Println("Pack", targetwasm, "to zip ...")
-	f, err := os.Create(targetwasm + ".zip")
+	fmt.Println("Pack", targetwasm, "to gzip ...")
+	f, err := os.Create(targetwasm + ".gz")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	zw := zip.NewWriter(f)
+	zw, _ := gzip.NewWriterLevel(f, gzip.BestCompression)
 	defer zw.Close()
-	w, err := zw.Create("resvg_go.wasm")
+	zw.Header.Name = "resvg.wasm"
 	if err != nil {
 		panic(err)
 	}
-	_, err = io.Copy(w, tgt)
+	_, err = io.Copy(zw, tgt)
 	if err != nil {
 		panic(err)
 	}
