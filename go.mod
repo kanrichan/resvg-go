@@ -1,5 +1,5 @@
-module github.com/kanrichan/resvg-go
+module resvgo
 
 go 1.18
 
-require github.com/tetratelabs/wazero v1.0.1
+require github.com/tetratelabs/wazero v1.4.0

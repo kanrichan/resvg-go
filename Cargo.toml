@@ -10,12 +10,11 @@ crate-type = ["cdylib"]
 path = "wasm/resvg.rs"
 
 [dependencies]
-resvg = { version = "0.28", default-features = false, features = [ "text" ] }
-usvg = { version = "0.28", default-features = false }
-usvg-text-layout = { version = "0.28", default-features = false }
-tiny-skia = "0.8"
-fontdb = { version = "0.10.0", default-features = false, features = [ "fs" ] }
-
+resvg = { version = "0.35.0", default-features = false, features = [ "text" ] }
+usvg = { version = "0.35.0", default-features = false }
+usvg-text-layout = { version = "0.35.0", default-features = false }
+tiny-skia = "0.11.1"
+fontdb = { version = "0.14.1", default-features = false, features = [ "fs" ] }
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = true
 

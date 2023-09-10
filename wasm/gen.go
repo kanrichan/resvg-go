@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 )
 
 const (
@@ -27,7 +28,8 @@ func main() {
 	}
 	defer tgt.Close()
 	fmt.Println("Pack", targetwasm, "to gzip ...")
-	f, err := os.Create(targetwasm + ".gz")
+	target := path.Join("wasm", path.Base(targetwasm)) + ".gz"
+	f, err := os.Create(target)
 	if err != nil {
 		panic(err)
 	}
