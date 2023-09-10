@@ -121,8 +121,6 @@ impl Renderer {
             default_size: self.options_default_size.unwrap_or(usvg::Size::from_wh(100.0, 100.0).unwrap()),
             image_href_resolver: usvg::ImageHrefResolver::default(),
         };
-        let path = opts.get_abs_path(std::path::Path::new("ferris_image"));
-        println!("{:#?}", path);
 
         let mut tree = usvg::Tree::from_data(&svg_xml, &opts).unwrap();
         tree.convert_text(&self.fontdb_database);

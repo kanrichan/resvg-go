@@ -1,6 +1,7 @@
 package resvg
 
 import (
+	"context"
 	"os"
 	"testing"
 )
@@ -10,55 +11,31 @@ var svg = []byte(
     <rect id="rect1" x="10" y="10" width="80" height="80" fill="black"/>
 </svg>`)
 
-func TestRustBytes(t *testing.T) {
-	inst, err := NewResvg()
+func TestRender(t *testing.T) {
+	ctx, err := NewContext(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer inst.Close()
-
-	rb, err := inst.NewRustBytes(12)
+	defer ctx.Close()
+	renderer, err := ctx.NewRenderer()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = rb.WriteString("hello world!")
+	defer renderer.Close()
+	err = renderer.LoadSystemFonts()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := rb.Free(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestRustBytesPointer(t *testing.T) {
-	inst, err := NewResvg()
+	err = renderer.LoadFontFile("SourceHanSerifCN-Light-subset.ttf")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer inst.Close()
-
-	rb, err := inst.NewRustBytesPointer()
+	b, err := renderer.Render(svg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := rb.Free(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestResvgRender(t *testing.T) {
-	inst, err := NewResvg()
+	err = os.WriteFile("out.png", b, 0644)
 	if err != nil {
-		t.Fatal(err)
-	}
-	defer inst.Close()
-
-	out, err := inst.DefaultResvgRenderToPNG(svg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err = os.WriteFile("out.png", out, 0644); err != nil {
 		t.Fatal(err)
 	}
 }

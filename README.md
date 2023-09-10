@@ -13,9 +13,11 @@
 
 ```go
 // initialize and don't forget to close!
-inst, _ := resvg.NewResvg()
-defer inst.Close()
+ctx, _ := NewContext(context.Background())
+defer ctx.Close()
+renderer, _ := ctx.NewRenderer()
+defer renderer.Close()
 
 // render the SVG as a PNG!
-png, _ := inst.DefaultResvgRenderToPNG(svg)
+png, _ := renderer.Render(svg)
 ```

@@ -6,10 +6,12 @@ import (
 	"context"
 	_ "embed"
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
+	"path"
+	"runtime"
+	"strings"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
@@ -138,6 +140,72 @@ func (r *Renderer) RenderWithSize(svg []byte, width, height uint32) ([]byte, err
 	var data = make([]byte, int(retlen), int(retlen))
 	copy(data, b)
 	return data, nil
+}
+
+func (r *Renderer) LoadSystemFonts() (err error) {
+	switch runtime.GOOS {
+	case "windows":
+		err = r.LoadFontDir("C:\\Windows\\Fonts")
+		if err != nil {
+			return
+		}
+		home := os.Getenv("USERPROFILE")
+		if home == "" {
+			return nil
+		}
+		err = r.LoadFontDir(path.Join(home, "AppData\\Local\\Microsoft\\Windows\\Fonts"))
+		if err != nil {
+			return
+		}
+		err = r.LoadFontDir(path.Join(home, "AppData\\Roaming\\Microsoft\\Windows\\Fonts"))
+		if err != nil {
+			return
+		}
+	case "darwin":
+		err = r.LoadFontDir("/Library/Fonts")
+		if err != nil {
+			return
+		}
+		err = r.LoadFontDir("/System/Library/Fonts")
+		if err != nil {
+			return
+		}
+		var dir []fs.DirEntry
+		dir, err = os.ReadDir("/System/Library/AssetsV2")
+		if err != nil {
+			return
+		}
+		for _, entry := range dir {
+			if entry.IsDir() && strings.HasPrefix(entry.Name(), "com_apple_MobileAsset_Font") {
+				err = r.LoadFontDir(path.Join("/System/Library/AssetsV2", entry.Name()))
+				if err != nil {
+					return
+				}
+			}
+		}
+	case "linux":
+		err = r.LoadFontDir("/usr/share/fonts")
+		if err != nil {
+			return
+		}
+		err = r.LoadFontDir("/usr/local/share/fonts")
+		if err != nil {
+			return
+		}
+		home := os.Getenv("HOME")
+		if home == "" {
+			return nil
+		}
+		err = r.LoadFontDir(path.Join(home, ".fonts"))
+		if err != nil {
+			return
+		}
+		err = r.LoadFontDir(path.Join(home, ".local/share/fonts"))
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 func (r *Renderer) LoadFontData(data []byte) error {
@@ -381,6 +449,5 @@ func (vfs vfs) Open(name string) (fs.File, error) {
 	if err != nil {
 		return nil, err // nil fs.File
 	}
-	fmt.Println("open", name, f)
 	return f, nil
 }
