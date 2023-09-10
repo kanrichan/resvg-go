@@ -1,4 +1,4 @@
-module resvgo
+module github.com/kanrichan/resvg-go
 
 go 1.18
 

@@ -22,14 +22,6 @@ func TestRender(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer renderer.Close()
-	err = renderer.LoadSystemFonts()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = renderer.LoadFontFile("SourceHanSerifCN-Light-subset.ttf")
-	if err != nil {
-		t.Fatal(err)
-	}
 	b, err := renderer.Render(svg)
 	if err != nil {
 		t.Fatal(err)
