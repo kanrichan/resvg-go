@@ -26,56 +26,81 @@ import (
 //go:embed wasm/resvg.wasm.gz
 var wasmgz []byte
 
+var wasm []byte
+
 var (
 	errWasmFunctionNotFound = errors.New("wasm function not found")
 	errWasmReturnInvaild    = errors.New("wasm return invalid")
 	errWasmMemoryOutOfRange = errors.New("wasm memory out of range")
 )
 
-type Context struct {
+const (
+	fnWasmBytesMalloc             = "__wasm_bytes_malloc"
+	fnWasmBytesFree               = "__wasm_bytes_free"
+	fnRendererNew                 = "__renderer_new"
+	fnRendererDelete              = "__renderer_delete"
+	fnRendererRender              = "__renderer_render"
+	fnRendererFontdbLoadFontData  = "__renderer_fontdb_load_font_data"
+	fnRendererFontdbLoadFontFile  = "__renderer_fontdb_load_font_file"
+	fnRendererFontdbLoadFontDir   = "__renderer_fontdb_load_fonts_dir"
+	fnRendererOptionsResourcesDir = "__renderer_options_resources_dir"
+	fnRendererOptionsDpi          = "__renderer_options_dpi"
+	fnRendererOptionsFontFamily   = "__renderer_options_font_family"
+	fnRendererOptionsFontSize     = "__renderer_options_font_size"
+	fnRendererOptionsLanguages    = "__renderer_options_languages"
+	fnRendererOptionsDefaultSize  = "__renderer_options_default_size"
+)
+
+type Worker struct {
 	context.Context
 	r   wazero.Runtime
 	mod api.Module
 }
 
 type Renderer struct {
-	ctx *Context
+	ctx *Worker
 	ptr int32
 }
 
-func NewContext(ctx context.Context) (*Context, error) {
-	wasmzr, err := gzip.NewReader(bytes.NewReader(wasmgz))
-	if err != nil {
-		return nil, err
-	}
-	defer wasmzr.Close()
-	wasm, err := io.ReadAll(wasmzr)
-	if err != nil {
-		return nil, err
+func NewDefaultWorker(ctx context.Context) (*Worker, error) {
+	return NewWorker(ctx, wazero.NewRuntimeConfig())
+}
+
+func NewWorker(ctx context.Context, config wazero.RuntimeConfig) (*Worker, error) {
+	if wasm == nil {
+		wasmgzr, err := gzip.NewReader(bytes.NewReader(wasmgz))
+		if err != nil {
+			return nil, err
+		}
+		defer wasmgzr.Close()
+		b, err := io.ReadAll(wasmgzr)
+		if err != nil {
+			return nil, err
+		}
+		wasm = b
 	}
 
-	r := wazero.NewRuntime(ctx)
-
-	config := wazero.NewModuleConfig().
-		WithStdout(os.Stdout).WithStderr(os.Stderr).
-		WithFS(vfs{})
+	r := wazero.NewRuntimeWithConfig(ctx, config)
 
 	wasi_snapshot_preview1.MustInstantiate(ctx, r)
 
-	mod, err := r.InstantiateWithConfig(ctx, wasm, config)
+	moduleConfig := wazero.NewModuleConfig().
+		WithStdout(os.Stdout).WithStderr(os.Stderr).
+		WithFS(vfs{})
+
+	mod, err := r.InstantiateWithConfig(ctx, wasm, moduleConfig)
 	if err != nil {
 		return nil, err
 	}
-	return &Context{ctx, r, mod}, nil
+	return &Worker{ctx, r, mod}, nil
 }
 
-func (ctx *Context) Close() error {
+func (ctx *Worker) Close() error {
 	return ctx.r.Close(ctx)
 }
 
-func (ctx *Context) NewRenderer() (*Renderer, error) {
-	fn := ctx.mod.
-		ExportedFunction("__renderer_new")
+func (ctx *Worker) NewRenderer() (*Renderer, error) {
+	fn := ctx.mod.ExportedFunction(fnRendererNew)
 	if fn == nil {
 		return nil, errWasmFunctionNotFound
 	}
@@ -90,8 +115,7 @@ func (ctx *Context) NewRenderer() (*Renderer, error) {
 }
 
 func (r *Renderer) Close() error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_delete")
+	fn := r.ctx.mod.ExportedFunction(fnRendererDelete)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -107,8 +131,7 @@ func (r *Renderer) Render(svg []byte) ([]byte, error) {
 }
 
 func (r *Renderer) RenderWithSize(svg []byte, width, height uint32) ([]byte, error) {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_render")
+	fn := r.ctx.mod.ExportedFunction(fnRendererRender)
 	if fn == nil {
 		return nil, errWasmFunctionNotFound
 	}
@@ -209,8 +232,7 @@ func (r *Renderer) LoadSystemFonts() (err error) {
 }
 
 func (r *Renderer) LoadFontData(data []byte) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_fontdb_load_font_data")
+	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontData)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -231,8 +253,7 @@ func (r *Renderer) LoadFontData(data []byte) error {
 }
 
 func (r *Renderer) LoadFontFile(file string) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_fontdb_load_font_file")
+	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontFile)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -254,8 +275,7 @@ func (r *Renderer) LoadFontFile(file string) error {
 }
 
 func (r *Renderer) LoadFontDir(dir string) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_fontdb_load_fonts_dir")
+	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontDir)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -277,8 +297,7 @@ func (r *Renderer) LoadFontDir(dir string) error {
 }
 
 func (r *Renderer) SetResourcesDir(dir string) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_resources_dir")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsResourcesDir)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -300,8 +319,7 @@ func (r *Renderer) SetResourcesDir(dir string) error {
 }
 
 func (r *Renderer) SetDpi(dpi float32) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_dpi")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsDpi)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -314,8 +332,7 @@ func (r *Renderer) SetDpi(dpi float32) error {
 }
 
 func (r *Renderer) SetFontFamily(family string) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_font_family")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsFontFamily)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -337,8 +354,7 @@ func (r *Renderer) SetFontFamily(family string) error {
 }
 
 func (r *Renderer) SetFontSize(size float32) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_font_size")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsFontSize)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -351,8 +367,7 @@ func (r *Renderer) SetFontSize(size float32) error {
 }
 
 func (r *Renderer) SetLanguages(languages string) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_languages")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsLanguages)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -373,27 +388,8 @@ func (r *Renderer) SetLanguages(languages string) error {
 	return err
 }
 
-func (r *Renderer) SetKeepNamedGroups(iskeep bool) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_keep_named_groups")
-	if fn == nil {
-		return errWasmFunctionNotFound
-	}
-	var flag int32 = 0
-	if iskeep {
-		flag = 1
-	}
-	_, err := fn.Call(
-		r.ctx,
-		api.EncodeI32(r.ptr),
-		api.EncodeI32(flag),
-	)
-	return err
-}
-
 func (r *Renderer) SetDefaultSize(width, height float32) error {
-	fn := r.ctx.mod.
-		ExportedFunction("__renderer_options_default_size")
+	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsDefaultSize)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
@@ -406,9 +402,8 @@ func (r *Renderer) SetDefaultSize(width, height float32) error {
 	return err
 }
 
-func (ctx *Context) malloc(size int) (uint32, error) {
-	fn := ctx.mod.
-		ExportedFunction("__wasm_bytes_malloc")
+func (ctx *Worker) malloc(size int) (uint32, error) {
+	fn := ctx.mod.ExportedFunction(fnWasmBytesMalloc)
 	if fn == nil {
 		return 0, errWasmFunctionNotFound
 	}
@@ -422,9 +417,8 @@ func (ctx *Context) malloc(size int) (uint32, error) {
 	return uint32(api.DecodeI32(ret[0])), nil
 }
 
-func (ctx *Context) free(ptr uint32, size int) error {
-	fn := ctx.mod.
-		ExportedFunction("__wasm_bytes_free")
+func (ctx *Worker) free(ptr uint32, size int) error {
+	fn := ctx.mod.ExportedFunction(fnWasmBytesFree)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}

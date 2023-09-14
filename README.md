@@ -13,9 +13,9 @@
 
 ```go
 // initialize and don't forget to close!
-ctx, _ := NewContext(context.Background())
-defer ctx.Close()
-renderer, _ := ctx.NewRenderer()
+worker, _ := NewDefaultWorker(context.Background())
+defer worker.Close()
+renderer, _ := worker.NewRenderer()
 defer renderer.Close()
 
 // render the SVG as a PNG!

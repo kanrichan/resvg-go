@@ -12,12 +12,12 @@ var svg = []byte(
 </svg>`)
 
 func TestRender(t *testing.T) {
-	ctx, err := NewContext(context.Background())
+	worker, err := NewDefaultWorker(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer ctx.Close()
-	renderer, err := ctx.NewRenderer()
+	defer worker.Close()
+	renderer, err := worker.NewRenderer()
 	if err != nil {
 		t.Fatal(err)
 	}
