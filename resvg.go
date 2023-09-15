@@ -58,8 +58,8 @@ type Worker struct {
 }
 
 type Renderer struct {
-	ctx *Worker
-	ptr int32
+	worker *Worker
+	ptr    int32
 }
 
 func NewDefaultWorker(ctx context.Context) (*Worker, error) {
@@ -115,15 +115,19 @@ func (ctx *Worker) NewRenderer() (*Renderer, error) {
 }
 
 func (r *Renderer) Close() error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererDelete)
+	fn := r.worker.mod.ExportedFunction(fnRendererDelete)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
-	_, err := fn.Call(r.ctx)
+	_, err := fn.Call(r.worker)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *Renderer) GetWorker() *Worker {
+	return r.worker
 }
 
 func (r *Renderer) Render(svg []byte) ([]byte, error) {
@@ -131,19 +135,19 @@ func (r *Renderer) Render(svg []byte) ([]byte, error) {
 }
 
 func (r *Renderer) RenderWithSize(svg []byte, width, height uint32) ([]byte, error) {
-	fn := r.ctx.mod.ExportedFunction(fnRendererRender)
+	fn := r.worker.mod.ExportedFunction(fnRendererRender)
 	if fn == nil {
 		return nil, errWasmFunctionNotFound
 	}
-	ptr, err := r.ctx.malloc(len(svg))
+	ptr, err := r.worker.malloc(len(svg))
 	if err != nil {
 		return nil, err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, svg); !f {
+	if f := r.worker.mod.Memory().Write(ptr, svg); !f {
 		return nil, errWasmMemoryOutOfRange
 	}
 	ret, err := fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(svg))),
@@ -155,8 +159,8 @@ func (r *Renderer) RenderWithSize(svg []byte, width, height uint32) ([]byte, err
 	}
 	retptr := uint32(ret[0] >> 32)
 	retlen := uint32(ret[0])
-	defer r.ctx.free(retptr, int(retlen))
-	b, f := r.ctx.mod.Memory().Read(retptr, retlen)
+	defer r.worker.free(retptr, int(retlen))
+	b, f := r.worker.mod.Memory().Read(retptr, retlen)
 	if !f {
 		return nil, errWasmReturnInvaild
 	}
@@ -232,19 +236,19 @@ func (r *Renderer) LoadSystemFonts() (err error) {
 }
 
 func (r *Renderer) LoadFontData(data []byte) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontData)
+	fn := r.worker.mod.ExportedFunction(fnRendererFontdbLoadFontData)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -253,20 +257,20 @@ func (r *Renderer) LoadFontData(data []byte) error {
 }
 
 func (r *Renderer) LoadFontFile(file string) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontFile)
+	fn := r.worker.mod.ExportedFunction(fnRendererFontdbLoadFontFile)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	data := []byte(file)
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -275,20 +279,20 @@ func (r *Renderer) LoadFontFile(file string) error {
 }
 
 func (r *Renderer) LoadFontDir(dir string) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererFontdbLoadFontDir)
+	fn := r.worker.mod.ExportedFunction(fnRendererFontdbLoadFontDir)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	data := []byte(dir)
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -297,20 +301,20 @@ func (r *Renderer) LoadFontDir(dir string) error {
 }
 
 func (r *Renderer) SetResourcesDir(dir string) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsResourcesDir)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsResourcesDir)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	data := []byte(dir)
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -319,12 +323,12 @@ func (r *Renderer) SetResourcesDir(dir string) error {
 }
 
 func (r *Renderer) SetDpi(dpi float32) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsDpi)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsDpi)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	_, err := fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeF32(dpi),
 	)
@@ -332,20 +336,20 @@ func (r *Renderer) SetDpi(dpi float32) error {
 }
 
 func (r *Renderer) SetFontFamily(family string) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsFontFamily)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsFontFamily)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	data := []byte(family)
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -354,12 +358,12 @@ func (r *Renderer) SetFontFamily(family string) error {
 }
 
 func (r *Renderer) SetFontSize(size float32) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsFontSize)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsFontSize)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	_, err := fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeF32(size),
 	)
@@ -367,20 +371,20 @@ func (r *Renderer) SetFontSize(size float32) error {
 }
 
 func (r *Renderer) SetLanguages(languages string) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsLanguages)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsLanguages)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	data := []byte(languages)
-	ptr, err := r.ctx.malloc(len(data))
+	ptr, err := r.worker.malloc(len(data))
 	if err != nil {
 		return err
 	}
-	if f := r.ctx.mod.Memory().Write(ptr, data); !f {
+	if f := r.worker.mod.Memory().Write(ptr, data); !f {
 		return errWasmMemoryOutOfRange
 	}
 	_, err = fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeI32(int32(ptr)),
 		api.EncodeI32(int32(len(data))),
@@ -389,12 +393,12 @@ func (r *Renderer) SetLanguages(languages string) error {
 }
 
 func (r *Renderer) SetDefaultSize(width, height float32) error {
-	fn := r.ctx.mod.ExportedFunction(fnRendererOptionsDefaultSize)
+	fn := r.worker.mod.ExportedFunction(fnRendererOptionsDefaultSize)
 	if fn == nil {
 		return errWasmFunctionNotFound
 	}
 	_, err := fn.Call(
-		r.ctx,
+		r.worker,
 		api.EncodeI32(r.ptr),
 		api.EncodeF32(width),
 		api.EncodeF32(height),
