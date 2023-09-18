@@ -1,13 +1,13 @@
 [package]
 name = "resvg"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib"]
-path = "wasm/resvg.rs"
+path = "internal/resvg.rs"
 
 [dependencies]
 resvg = { version = "0.35.0", default-features = false, features = [ "text" ] }
@@ -15,6 +15,7 @@ usvg = { version = "0.35.0", default-features = false }
 usvg-text-layout = { version = "0.35.0", default-features = false }
 tiny-skia = "0.11.1"
 fontdb = { version = "0.14.1", default-features = false, features = [ "fs" ] }
+
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = true
 

@@ -28,7 +28,7 @@ func main() {
 	}
 	defer tgt.Close()
 	fmt.Println("Pack", targetwasm, "to gzip ...")
-	target := path.Join("wasm", path.Base(targetwasm)) + ".gz"
+	target := path.Join("internal", path.Base(targetwasm)) + ".gz"
 	f, err := os.Create(target)
 	if err != nil {
 		panic(err)
