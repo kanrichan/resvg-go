@@ -107,6 +107,21 @@ func (wk *Worker) Render(svg []byte) ([]byte, error) {
 	return data, err
 }
 
+type renderer struct {
+	fontdb  int32
+	options options
+}
+
+type options int32
+
+func NewRenderer() *renderer {
+	return &renderer{}
+}
+
+func (opt options) SetDpi(dpi float32) {
+
+}
+
 type vfs struct{}
 
 func (vfs vfs) Open(name string) (fs.File, error) {
