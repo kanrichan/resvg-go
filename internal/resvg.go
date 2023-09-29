@@ -12,12 +12,12 @@ import (
 // and packed into gzip
 //
 //go:embed resvg.wasm.gz
-var wasmgz []byte
+var WasmGZ []byte
 
 var (
-	ErrWasmFunctionNotFound = errors.New("wasm function not found")
-	ErrWasmReturnInvaild    = errors.New("wasm return invalid")
-	ErrWasmMemoryOutOfRange = errors.New("wasm memory out of range")
+	ErrWasmFunctionNotFound = errors.New("wasm error: function not found")
+	ErrWasmReturnInvaild    = errors.New("wasm error: return invalid")
+	ErrWasmMemoryOutOfRange = errors.New("wasm error: memory out of range")
 )
 
 const (
@@ -27,11 +27,11 @@ const (
 	ExportNameFontdbDatabaseLoadFontFile       = "fontdb_database_load_font_file"
 	ExportNameFontdbDatabaseLoadFontsDir       = "fontdb_database_load_fonts_dir"
 	ExportNameFontdbDatabaseLen                = "fontdb_database_len"
-	ExportNameFontdbDatabasesetSerifFamily     = "fontdb_database_set_serif_family"
-	ExportNameFontdbDatabasesetSansSerifFamily = "fontdb_database_set_sans_serif_family"
-	ExportNameFontdbDatabasesetCursiveFamily   = "fontdb_database_set_cursive_family"
-	ExportNameFontdbDatabasesetFantasyFamily   = "fontdb_database_set_fantasy_family"
-	ExportNameFontdbDatabasesetMonospaceFamily = "fontdb_database_set_monospace_family"
+	ExportNameFontdbDatabaseSetSerifFamily     = "fontdb_database_set_serif_family"
+	ExportNameFontdbDatabaseSetSansSerifFamily = "fontdb_database_set_sans_serif_family"
+	ExportNameFontdbDatabaseSetCursiveFamily   = "fontdb_database_set_cursive_family"
+	ExportNameFontdbDatabaseSetFantasyFamily   = "fontdb_database_set_fantasy_family"
+	ExportNameFontdbDatabaseSetMonospaceFamily = "fontdb_database_set_monospace_family"
 	ExportNameUsvgOptionsDefault               = "usvg_options_default"
 	ExportNameUsvgOptionsDelete                = "usvg_options_delete"
 	ExportNameUsvgOptionsSetResourcesDir       = "usvg_options_set_resources_dir"
@@ -127,7 +127,7 @@ func FontdbDatabaseLoadFontData(ctx context.Context, module api.Module, database
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -156,7 +156,7 @@ func FontdbDatabaseLoadFontFile(ctx context.Context, module api.Module, database
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -185,7 +185,7 @@ func FontdbDatabaseLoadFontsDir(ctx context.Context, module api.Module, database
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -210,9 +210,9 @@ func FontdbDatabaseLen(ctx context.Context, module api.Module, database int32) (
 	return api.DecodeI32(resp[0]), nil
 }
 
-func FontdbDatabasesetSerifFamily(ctx context.Context, module api.Module, database int32, family string) error {
+func FontdbDatabaseSetSerifFamily(ctx context.Context, module api.Module, database int32, family string) error {
 	fn := module.
-		ExportedFunction(ExportNameFontdbDatabasesetSerifFamily)
+		ExportedFunction(ExportNameFontdbDatabaseSetSerifFamily)
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
@@ -233,15 +233,15 @@ func FontdbDatabasesetSerifFamily(ctx context.Context, module api.Module, databa
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
 }
 
-func FontdbDatabasesetSansSerifFamily(ctx context.Context, module api.Module, database int32, family string) error {
+func FontdbDatabaseSetSansSerifFamily(ctx context.Context, module api.Module, database int32, family string) error {
 	fn := module.
-		ExportedFunction(ExportNameFontdbDatabasesetSansSerifFamily)
+		ExportedFunction(ExportNameFontdbDatabaseSetSansSerifFamily)
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
@@ -262,15 +262,15 @@ func FontdbDatabasesetSansSerifFamily(ctx context.Context, module api.Module, da
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
 }
 
-func FontdbDatabasesetCursiveFamily(ctx context.Context, module api.Module, database int32, family string) error {
+func FontdbDatabaseSetCursiveFamily(ctx context.Context, module api.Module, database int32, family string) error {
 	fn := module.
-		ExportedFunction(ExportNameFontdbDatabasesetCursiveFamily)
+		ExportedFunction(ExportNameFontdbDatabaseSetCursiveFamily)
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
@@ -291,15 +291,15 @@ func FontdbDatabasesetCursiveFamily(ctx context.Context, module api.Module, data
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
 }
 
-func FontdbDatabasesetFantasyFamily(ctx context.Context, module api.Module, database int32, family string) error {
+func FontdbDatabaseSetFantasyFamily(ctx context.Context, module api.Module, database int32, family string) error {
 	fn := module.
-		ExportedFunction(ExportNameFontdbDatabasesetFantasyFamily)
+		ExportedFunction(ExportNameFontdbDatabaseSetFantasyFamily)
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
@@ -320,15 +320,15 @@ func FontdbDatabasesetFantasyFamily(ctx context.Context, module api.Module, data
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
 }
 
-func FontdbDatabasesetMonospaceFamily(ctx context.Context, module api.Module, database int32, family string) error {
+func FontdbDatabaseSetMonospaceFamily(ctx context.Context, module api.Module, database int32, family string) error {
 	fn := module.
-		ExportedFunction(ExportNameFontdbDatabasesetMonospaceFamily)
+		ExportedFunction(ExportNameFontdbDatabaseSetMonospaceFamily)
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
@@ -349,7 +349,7 @@ func FontdbDatabasesetMonospaceFamily(ctx context.Context, module api.Module, da
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -415,7 +415,7 @@ func UsvgOptionsSetResourcesDir(ctx context.Context, module api.Module, options 
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -435,7 +435,7 @@ func UsvgOptionsSetDpi(ctx context.Context, module api.Module, options int32, dp
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -464,13 +464,13 @@ func UsvgOptionsSetFontFamily(ctx context.Context, module api.Module, options in
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
 }
 
-func UsvgOptionsSetFontSize(ctx context.Context, module api.Module, options int32, size int) error {
+func UsvgOptionsSetFontSize(ctx context.Context, module api.Module, options int32, size float32) error {
 	fn := module.
 		ExportedFunction(ExportNameUsvgOptionsSetFontSize)
 	if fn == nil {
@@ -479,12 +479,12 @@ func UsvgOptionsSetFontSize(ctx context.Context, module api.Module, options int3
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(options),
-		api.EncodeI32(int32(size)),
+		api.EncodeF32(size),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -513,7 +513,7 @@ func UsvgOptionsSetLanguages(ctx context.Context, module api.Module, options int
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -533,7 +533,7 @@ func UsvgOptionsSetShapeRenderingMode(ctx context.Context, module api.Module, op
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -553,7 +553,7 @@ func UsvgOptionsSetTextRenderingMode(ctx context.Context, module api.Module, opt
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -573,7 +573,7 @@ func UsvgOptionsSetImageRenderingMode(ctx context.Context, module api.Module, op
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -594,7 +594,7 @@ func UsvgOptionsSetDefaultSize(ctx context.Context, module api.Module, options i
 	if err != nil {
 		return err
 	}
-	if len(resp) != 3 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -860,7 +860,7 @@ func TinySkiaTransformDelete(ctx context.Context, module api.Module, transform i
 	if err != nil {
 		return err
 	}
-	if len(resp) != 1 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -908,7 +908,7 @@ func UsvgTreeDelete(ctx context.Context, module api.Module, tree int32) error {
 	if err != nil {
 		return err
 	}
-	if len(resp) != 1 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -928,7 +928,7 @@ func UsvgTreeConvertText(ctx context.Context, module api.Module, tree int32, dat
 	if err != nil {
 		return err
 	}
-	if len(resp) != 2 {
+	if len(resp) != 0 {
 		return ErrWasmReturnInvaild
 	}
 	return nil
@@ -1056,13 +1056,16 @@ func MemoryFree(ctx context.Context, module api.Module, ptr int32, size int) err
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	_, err := fn.Call(
+	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(ptr),
 		api.EncodeI32(int32(size)),
 	)
 	if err != nil {
 		return err
+	}
+	if len(resp) != 0 {
+		return ErrWasmReturnInvaild
 	}
 	return nil
 }
