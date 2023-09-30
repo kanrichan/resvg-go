@@ -1,5 +1,12 @@
 use resvg::{usvg, tiny_skia};
 use usvg::{fontdb, TreeTextToPath, TreeParsing};
+use std::ffi::{c_char, CStr, CString};
+
+#[repr(C)]
+pub enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
 
 #[no_mangle]
 pub extern "C" fn fontdb_database_default() -> *mut fontdb::Database {
@@ -19,25 +26,32 @@ pub extern "C" fn fontdb_database_load_font_data(database: &mut fontdb::Database
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_load_font_file(database: &mut fontdb::Database, file_ptr: *mut u8, file_size: usize) {
-    let file = unsafe { Vec::from_raw_parts(file_ptr, file_size, file_size) };
-    let file = match String::from_utf8(file) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_load_font_file(database: &mut fontdb::Database, file: *const c_char) -> *const c_char {
+    let file = unsafe { CStr::from_ptr(file) };
+    let file = match file.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     let path = std::path::Path::new(&file);
-    let _ = database.load_font_file(path);
+    match database.load_font_file(path) {
+        Ok(_) => 0 as *const c_char,
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_load_fonts_dir(database: &mut fontdb::Database, dir_ptr: *mut u8, dir_size: usize) {
-    let dir = unsafe { Vec::from_raw_parts(dir_ptr, dir_size, dir_size) };
-    let dir: String = match String::from_utf8(dir) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_load_fonts_dir(database: &mut fontdb::Database, dir: *const c_char) -> *const c_char {
+    let dir = unsafe { CStr::from_ptr(dir) };
+    let dir = match dir.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     let path = std::path::Path::new(&dir);
     database.load_fonts_dir(path);
+    0 as *const c_char
 }
 
 #[no_mangle]
@@ -46,53 +60,63 @@ pub extern "C" fn fontdb_database_len(database: &mut fontdb::Database) -> usize 
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_set_serif_family(database: &mut fontdb::Database, family_ptr: *mut u8, family_size: usize) {
-    let family = unsafe { Vec::from_raw_parts(family_ptr, family_size, family_size) };
-    let family: String = match String::from_utf8(family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_set_serif_family(database: &mut fontdb::Database, family: *const c_char) -> *const c_char  {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     database.set_serif_family(family);
+    0 as *const c_char
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_set_sans_serif_family(database: &mut fontdb::Database, family_ptr: *mut u8, family_size: usize) {
-    let family = unsafe { Vec::from_raw_parts(family_ptr, family_size, family_size) };
-    let family: String = match String::from_utf8(family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_set_sans_serif_family(database: &mut fontdb::Database, family: *const c_char) -> *const c_char {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     database.set_sans_serif_family(family);
+    0 as *const c_char
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_set_cursive_family(database: &mut fontdb::Database, family_ptr: *mut u8, family_size: usize) {
-    let family = unsafe { Vec::from_raw_parts(family_ptr, family_size, family_size) };
-    let family: String = match String::from_utf8(family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_set_cursive_family(database: &mut fontdb::Database, family: *const c_char) -> *const c_char {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     database.set_cursive_family(family);
+    0 as *const c_char
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_set_fantasy_family(database: &mut fontdb::Database, family_ptr: *mut u8, family_size: usize) {
-    let family = unsafe { Vec::from_raw_parts(family_ptr, family_size, family_size) };
-    let family: String = match String::from_utf8(family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_set_fantasy_family(database: &mut fontdb::Database, family: *const c_char) -> *const c_char {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     database.set_fantasy_family(family);
+    0 as *const c_char
 }
 
 #[no_mangle]
-pub extern "C" fn fontdb_database_set_monospace_family(database: &mut fontdb::Database, family_ptr: *mut u8, family_size: usize) {
-    let family = unsafe { Vec::from_raw_parts(family_ptr, family_size, family_size) };
-    let family: String = match String::from_utf8(family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn fontdb_database_set_monospace_family(database: &mut fontdb::Database, family: *const c_char) -> *const c_char {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     database.set_monospace_family(family);
+    0 as *const c_char
 }
 
 #[no_mangle]
@@ -107,13 +131,15 @@ pub extern "C" fn usvg_options_delete(options: *mut usvg::Options) {
 }
 
 #[no_mangle]
-pub extern "C" fn usvg_options_set_resources_dir(options: &mut usvg::Options, dir_ptr: *mut u8, dir_size: usize) {
-    let dir = unsafe { Vec::from_raw_parts(dir_ptr, dir_size, dir_size) };
-    let dir: String = match String::from_utf8(dir) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn usvg_options_set_resources_dir(options: &mut usvg::Options, dir: *const c_char) -> *const c_char {
+    let dir = unsafe { CStr::from_ptr(dir) };
+    let dir = match dir.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     options.resources_dir = Some(std::path::PathBuf::from(dir));
+    0 as *const c_char
 }
 
 #[no_mangle]
@@ -122,13 +148,15 @@ pub extern "C" fn usvg_options_set_dpi(options: &mut usvg::Options, dpi: f32) {
 }
 
 #[no_mangle]
-pub extern "C" fn usvg_options_set_font_family(options: &mut usvg::Options, font_family_ptr: *mut u8, font_family_size: usize) {
-    let font_family = unsafe { Vec::from_raw_parts(font_family_ptr, font_family_size, font_family_size) };
-    let font_family: String = match String::from_utf8(font_family) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn usvg_options_set_font_family(options: &mut usvg::Options, family: *const c_char) -> *const c_char {
+    let family = unsafe { CStr::from_ptr(family) };
+    let family = match family.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
-    options.font_family = font_family;
+    options.font_family = family;
+    0 as *const c_char
 }
 
 #[no_mangle]
@@ -137,17 +165,19 @@ pub extern "C" fn usvg_options_set_font_size(options: &mut usvg::Options, font_s
 }
 
 #[no_mangle]
-pub extern "C" fn usvg_options_set_languages(options: &mut usvg::Options, languages_ptr: *mut u8, languages_size: usize) {
-    let languages = unsafe { Vec::from_raw_parts(languages_ptr, languages_size, languages_size) };
-    let languages: String = match String::from_utf8(languages) {
-        Ok(v) => v,
-        Err(_) => return,
+pub extern "C" fn usvg_options_set_languages(options: &mut usvg::Options, languages: *const c_char) -> *const c_char {
+    let languages = unsafe { CStr::from_ptr(languages) };
+    let languages = match languages.to_str() {
+        Ok(v) => v.to_owned(),
+        Err(e) => return CStr::from_bytes_with_nul(
+            e.to_string().as_bytes()).unwrap().as_ptr(),
     };
     let mut arr: Vec<String> = Vec::new();
     for token in languages.split_whitespace(){
         arr.push(token.to_owned());
     }
     options.languages = arr;
+    0 as *const c_char
 }
 
 #[no_mangle]
@@ -198,20 +228,30 @@ pub extern "C" fn tiny_skia_pixmap_new(width: u32, height: u32) -> *mut tiny_ski
 }
 
 #[no_mangle]
+pub extern "C" fn tiny_skia_pixmap_decode_png(data_ptr: *mut u8, data_size: usize) -> Result<*mut tiny_skia::Pixmap, *const c_char> {
+    let data = unsafe { Vec::from_raw_parts(data_ptr, data_size, data_size) };
+    let pixmap = match tiny_skia::Pixmap::decode_png(&data) {
+        Ok(v) => v,
+        Err(e) => return Result::Err(CString::new(e.to_string()).unwrap().into_raw()),
+    };
+    Result::Ok(Box::into_raw(pixmap.into()))
+}
+
+#[no_mangle]
 pub extern "C" fn tiny_skia_pixmap_delete(pixmap: *mut tiny_skia::Pixmap) {
     let _ = unsafe { Box::from_raw(pixmap) };
 }
 
 #[no_mangle]
-pub extern "C" fn tiny_skia_pixmap_encode_png(pixmap: &mut tiny_skia::Pixmap) -> u64 {
+pub extern "C" fn tiny_skia_pixmap_encode_png(pixmap: &mut tiny_skia::Pixmap) -> Result<u64, *const c_char> {
     let mut data = match pixmap.encode_png() {
         Ok(v) => v,
-        Err(_) => return 0,
+        Err(e) => return Result::Err(CString::new(e.to_string()).unwrap().into_raw()),
     };
     let ptr = data.as_mut_ptr();
     let size = data.len();
     std::mem::forget(data);
-    ((ptr as u64) << 32) | (size as u64)
+    Result::Ok(((ptr as u64) << 32) | (size as u64))
 }
 
 #[no_mangle]
@@ -272,13 +312,13 @@ pub extern "C" fn tiny_skia_transform_delete(transform: *mut tiny_skia::Transfor
 }
 
 #[no_mangle]
-pub extern "C" fn usvg_tree_from_data(data_ptr: *mut u8, data_size: usize, options: &mut usvg::Options) -> *mut usvg::Tree {
+pub extern "C" fn usvg_tree_from_data(data_ptr: *mut u8, data_size: usize, options: &mut usvg::Options) -> Result<*mut usvg::Tree, *const c_char> {
     let data = unsafe { Vec::from_raw_parts(data_ptr, data_size, data_size) };
     let tree = match usvg::Tree::from_data(&data, options) {
         Ok(v) => v,
-        Err(_) => return std::ptr::null_mut(),
+        Err(e) => return Result::Err(CString::new(e.to_string()).unwrap().into_raw()),
     };
-    Box::into_raw(tree.into())
+    Result::Ok(Box::into_raw(tree.into()))
 }
 
 #[no_mangle]
