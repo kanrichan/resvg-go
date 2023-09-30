@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"errors"
+	"fmt"
 
 	"github.com/tetratelabs/wazero/api"
 )
@@ -44,8 +45,9 @@ const (
 	ExportNameUsvgOptionsSetImageRenderingMode = "usvg_options_set_image_rendering_mode"
 	ExportNameUsvgOptionsSetDefaultSize        = "usvg_options_set_default_size"
 	ExportNameTinySkiaPixmapNew                = "tiny_skia_pixmap_new"
+	ExportNameTinySkiaPixmapDecodePNG          = "tiny_skia_pixmap_decode_png"
 	ExportNameTinySkiaPixmapDelete             = "tiny_skia_pixmap_delete"
-	ExportNameTinySkiaPixmapEncodePng          = "tiny_skia_pixmap_encode_png"
+	ExportNameTinySkiaPixmapEncodePNG          = "tiny_skia_pixmap_encode_png"
 	ExportNameTinySkiaPixmapGetWidth           = "tiny_skia_pixmap_get_width"
 	ExportNameTinySkiaPixmapGetHeight          = "tiny_skia_pixmap_get_height"
 	ExportNameTinySkiaTransformIdentity        = "tiny_skia_transform_identity"
@@ -139,27 +141,34 @@ func FontdbDatabaseLoadFontFile(ctx context.Context, module api.Module, database
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(file)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(file)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(file)+1)
+	if err := CStrWrite(ctx, module, m, file); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseLoadFontsDir(ctx context.Context, module api.Module, database int32, dir string) error {
@@ -168,27 +177,34 @@ func FontdbDatabaseLoadFontsDir(ctx context.Context, module api.Module, database
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(dir)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(dir)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(dir)+1)
+	if err := CStrWrite(ctx, module, m, dir); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseLen(ctx context.Context, module api.Module, database int32) (int32, error) {
@@ -216,27 +232,34 @@ func FontdbDatabaseSetSerifFamily(ctx context.Context, module api.Module, databa
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseSetSansSerifFamily(ctx context.Context, module api.Module, database int32, family string) error {
@@ -245,27 +268,34 @@ func FontdbDatabaseSetSansSerifFamily(ctx context.Context, module api.Module, da
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseSetCursiveFamily(ctx context.Context, module api.Module, database int32, family string) error {
@@ -274,27 +304,34 @@ func FontdbDatabaseSetCursiveFamily(ctx context.Context, module api.Module, data
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseSetFantasyFamily(ctx context.Context, module api.Module, database int32, family string) error {
@@ -303,27 +340,34 @@ func FontdbDatabaseSetFantasyFamily(ctx context.Context, module api.Module, data
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func FontdbDatabaseSetMonospaceFamily(ctx context.Context, module api.Module, database int32, family string) error {
@@ -332,27 +376,34 @@ func FontdbDatabaseSetMonospaceFamily(ctx context.Context, module api.Module, da
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(database),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func UsvgOptionsDefault(ctx context.Context, module api.Module) (int32, error) {
@@ -398,27 +449,34 @@ func UsvgOptionsSetResourcesDir(ctx context.Context, module api.Module, options 
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(dir)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(dir)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(dir)+1)
+	if err := CStrWrite(ctx, module, m, dir); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(options),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func UsvgOptionsSetDpi(ctx context.Context, module api.Module, options int32, dpi float32) error {
@@ -447,27 +505,34 @@ func UsvgOptionsSetFontFamily(ctx context.Context, module api.Module, options in
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(family)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(family)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(family)+1)
+	if err := CStrWrite(ctx, module, m, family); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(options),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func UsvgOptionsSetFontSize(ctx context.Context, module api.Module, options int32, size float32) error {
@@ -496,27 +561,34 @@ func UsvgOptionsSetLanguages(ctx context.Context, module api.Module, options int
 	if fn == nil {
 		return ErrWasmFunctionNotFound
 	}
-	data := []byte(languages)
-	m, err := MemoryMalloc(ctx, module, len(data))
+	m, err := MemoryMalloc(ctx, module, len(languages)+1)
 	if err != nil {
 		return err
 	}
-	if !module.Memory().Write(uint32(m), data) {
-		return ErrWasmMemoryOutOfRange
+	defer MemoryFree(ctx, module, m, len(languages)+1)
+	if err := CStrWrite(ctx, module, m, languages); err != nil {
+		return err
 	}
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(options),
 		api.EncodeI32(m),
-		api.EncodeI32(int32(len(data))),
 	)
 	if err != nil {
 		return err
 	}
-	if len(resp) != 0 {
+	if len(resp) != 1 {
 		return ErrWasmReturnInvaild
 	}
-	return nil
+	if resp[0] == 0 {
+		return nil
+	}
+	error, err := CStrRead(ctx, module, int32(resp[0]))
+	if err != nil {
+		return err
+	}
+	defer MemoryFree(ctx, module, int32(resp[0]), 4)
+	return errors.New(error)
 }
 
 func UsvgOptionsSetShapeRenderingMode(ctx context.Context, module api.Module, options int32, mode int32) error {
@@ -620,6 +692,51 @@ func TinySkiaPixmapNew(ctx context.Context, module api.Module, width uint32, hei
 	return api.DecodeI32(resp[0]), nil
 }
 
+func TinySkiaPixmapDecodePNG(ctx context.Context, module api.Module, data []byte) (int32, error) {
+	fn := module.
+		ExportedFunction(ExportNameTinySkiaPixmapDecodePNG)
+	if fn == nil {
+		return 0, ErrWasmFunctionNotFound
+	}
+	m, err := MemoryMalloc(ctx, module, len(data))
+	if err != nil {
+		return 0, err
+	}
+	if !module.Memory().Write(uint32(m), data) {
+		return 0, ErrWasmMemoryOutOfRange
+	}
+	r, err := MemoryMalloc(ctx, module, 8)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, r, 8)
+	resp, err := fn.Call(
+		ctx,
+		api.EncodeI32(r),
+		api.EncodeI32(m),
+		api.EncodeI32(int32(len(data))),
+	)
+	if err != nil {
+		return 0, err
+	}
+	if len(resp) != 0 {
+		return 0, ErrWasmReturnInvaild
+	}
+	result, err := Result32Read(ctx, module, r)
+	if err != nil {
+		return 0, err
+	}
+	if result.ok {
+		return result.data, nil
+	}
+	error, err := CStrRead(ctx, module, result.data)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, result.data, len(error)+1)
+	return 0, errors.New(error)
+}
+
 func TinySkiaPixmapDelete(ctx context.Context, module api.Module, pixmap int32) error {
 	fn := module.
 		ExportedFunction(ExportNameTinySkiaPixmapDelete)
@@ -641,30 +758,49 @@ func TinySkiaPixmapDelete(ctx context.Context, module api.Module, pixmap int32) 
 
 func TinySkiaPixmapEncodePng(ctx context.Context, module api.Module, pixmap int32) ([]byte, error) {
 	fn := module.
-		ExportedFunction(ExportNameTinySkiaPixmapEncodePng)
+		ExportedFunction(ExportNameTinySkiaPixmapEncodePNG)
 	if fn == nil {
 		return nil, ErrWasmFunctionNotFound
 	}
+	r, err := MemoryMalloc(ctx, module, 8)
+	if err != nil {
+		return nil, err
+	}
+	defer MemoryFree(ctx, module, r, 8)
 	resp, err := fn.Call(
 		ctx,
+		api.EncodeI32(r),
 		api.EncodeI32(pixmap),
 	)
 	if err != nil {
 		return nil, err
 	}
-	if len(resp) != 1 || resp[0] == 0 {
+	if len(resp) != 0 {
 		return nil, ErrWasmReturnInvaild
 	}
-	respptr := int32(resp[0] >> 32)
-	resplen := uint32(resp[0])
-	defer MemoryFree(ctx, module, respptr, int(resplen))
-	b, f := module.Memory().Read(uint32(respptr), resplen)
-	if !f {
-		return nil, ErrWasmReturnInvaild
+	result, err := Result64Read(ctx, module, r)
+	if err != nil {
+		return nil, err
 	}
-	var data = make([]byte, int(resplen), int(resplen))
-	copy(data, b)
-	return data, nil
+	if result.ok {
+		respptr := uint32(result.data >> 32)
+		resplen := uint32(result.data)
+		fmt.Println(respptr, resplen)
+		defer MemoryFree(ctx, module, int32(respptr), int(resplen))
+		b, f := module.Memory().Read(respptr, resplen)
+		if !f {
+			return nil, ErrWasmReturnInvaild
+		}
+		var data = make([]byte, int(resplen), int(resplen))
+		copy(data, b)
+		return data, nil
+	}
+	error, err := CStrRead(ctx, module, int32(result.data))
+	if err != nil {
+		return nil, err
+	}
+	defer MemoryFree(ctx, module, int32(result.data), len(error)+1)
+	return nil, errors.New(error)
 }
 
 func TinySkiaPixmapGetWidth(ctx context.Context, module api.Module, pixmap int32) (uint32, error) {
@@ -872,7 +1008,6 @@ func UsvgTreeFromData(ctx context.Context, module api.Module, data []byte, optio
 	if fn == nil {
 		return 0, ErrWasmFunctionNotFound
 	}
-
 	m, err := MemoryMalloc(ctx, module, len(data))
 	if err != nil {
 		return 0, err
@@ -880,8 +1015,14 @@ func UsvgTreeFromData(ctx context.Context, module api.Module, data []byte, optio
 	if !module.Memory().Write(uint32(m), data) {
 		return 0, ErrWasmMemoryOutOfRange
 	}
+	r, err := MemoryMalloc(ctx, module, 8)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, r, 8)
 	resp, err := fn.Call(
 		ctx,
+		api.EncodeI32(r),
 		api.EncodeI32(m),
 		api.EncodeI32(int32(len(data))),
 		api.EncodeI32(options),
@@ -889,10 +1030,22 @@ func UsvgTreeFromData(ctx context.Context, module api.Module, data []byte, optio
 	if err != nil {
 		return 0, err
 	}
-	if len(resp) != 1 || resp[0] == 0 {
+	if len(resp) != 0 {
 		return 0, ErrWasmReturnInvaild
 	}
-	return api.DecodeI32(resp[0]), nil
+	result, err := Result32Read(ctx, module, r)
+	if err != nil {
+		return 0, err
+	}
+	if result.ok {
+		return result.data, nil
+	}
+	error, err := CStrRead(ctx, module, result.data)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, result.data, len(error)+1)
+	return 0, errors.New(error)
 }
 
 func UsvgTreeDelete(ctx context.Context, module api.Module, tree int32) error {
@@ -1068,4 +1221,129 @@ func MemoryFree(ctx context.Context, module api.Module, ptr int32, size int) err
 		return ErrWasmReturnInvaild
 	}
 	return nil
+}
+
+func CStrMalloc(ctx context.Context, module api.Module, data string) (int32, error) {
+	ptr, err := MemoryMalloc(ctx, module, len(data)+1)
+	if err != nil {
+		return 0, err
+	}
+	if !module.Memory().WriteString(uint32(ptr), data) {
+		return 0, ErrWasmMemoryOutOfRange
+	}
+	if !module.Memory().WriteByte(uint32(ptr)+uint32(len(data)), 0) {
+		return 0, ErrWasmMemoryOutOfRange
+	}
+	return ptr, nil
+}
+
+func CStrFree(ctx context.Context, module api.Module, ptr int32) (string, error) {
+	var i int
+	for i = 0; i < 1024; i++ {
+		b, f := module.Memory().ReadByte(uint32(ptr) + uint32(i))
+		if b == 0 || !f {
+			break
+		}
+	}
+	if i == 0 {
+		return "", ErrWasmMemoryOutOfRange
+	}
+	defer MemoryFree(ctx, module, int32(ptr), i)
+	b, _ := module.Memory().Read(uint32(ptr), uint32(i))
+	var e = make([]byte, i, i)
+	copy(e, b)
+	return string(e), nil
+}
+
+func CStrWrite(ctx context.Context, module api.Module, ptr int32, s string) error {
+	if !module.Memory().WriteString(uint32(ptr), s) {
+		return ErrWasmMemoryOutOfRange
+	}
+	if !module.Memory().WriteByte(uint32(ptr)+uint32(len(s)), 0) {
+		return ErrWasmMemoryOutOfRange
+	}
+	return nil
+}
+
+func CStrRead(ctx context.Context, module api.Module, ptr int32) (string, error) {
+	var i int
+	for i = 0; i < 1024; i++ {
+		b, f := module.Memory().ReadByte(uint32(ptr) + uint32(i))
+		if b == 0 || !f {
+			break
+		}
+	}
+	if i == 0 {
+		return "", ErrWasmMemoryOutOfRange
+	}
+	b, _ := module.Memory().Read(uint32(ptr), uint32(i))
+	var e = make([]byte, i, i)
+	copy(e, b)
+	return string(e), nil
+}
+
+type Result32 struct {
+	ok   bool
+	data int32
+}
+
+func Result32Write(ctx context.Context, module api.Module, ptr int32, r Result32) error {
+	if r.ok {
+		if !module.Memory().WriteUint32Le(uint32(ptr), 0) {
+			return ErrWasmMemoryOutOfRange
+		}
+	} else {
+		if module.Memory().WriteUint32Le(uint32(ptr), 1) {
+			return ErrWasmMemoryOutOfRange
+		}
+	}
+	if module.Memory().WriteUint32Le(uint32(ptr)+4, uint32(r.data)) {
+		return ErrWasmMemoryOutOfRange
+	}
+	return nil
+}
+
+func Result32Read(ctx context.Context, module api.Module, ptr int32) (Result32, error) {
+	ok, f := module.Memory().ReadUint32Le(uint32(ptr))
+	if !f {
+		return Result32{}, ErrWasmMemoryOutOfRange
+	}
+	o, f := module.Memory().ReadUint32Le(uint32(ptr) + 4)
+	if !f {
+		return Result32{}, ErrWasmMemoryOutOfRange
+	}
+	return Result32{ok == 0, int32(o)}, nil
+}
+
+type Result64 struct {
+	ok   bool
+	data int64
+}
+
+func Result64Write(ctx context.Context, module api.Module, ptr int32, r Result64) error {
+	if r.ok {
+		if !module.Memory().WriteUint32Le(uint32(ptr), 0) {
+			return ErrWasmMemoryOutOfRange
+		}
+	} else {
+		if module.Memory().WriteUint32Le(uint32(ptr), 1) {
+			return ErrWasmMemoryOutOfRange
+		}
+	}
+	if module.Memory().WriteUint64Le(uint32(ptr)+4, uint64(r.data)) {
+		return ErrWasmMemoryOutOfRange
+	}
+	return nil
+}
+
+func Result64Read(ctx context.Context, module api.Module, ptr int32) (Result64, error) {
+	ok, f := module.Memory().ReadUint32Le(uint32(ptr))
+	if !f {
+		return Result64{}, ErrWasmMemoryOutOfRange
+	}
+	o, f := module.Memory().ReadUint64Le(uint32(ptr) + 8)
+	if !f {
+		return Result64{}, ErrWasmMemoryOutOfRange
+	}
+	return Result64{ok == 0, int64(o)}, nil
 }

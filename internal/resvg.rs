@@ -30,14 +30,12 @@ pub extern "C" fn fontdb_database_load_font_file(database: &mut fontdb::Database
     let file = unsafe { CStr::from_ptr(file) };
     let file = match file.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     let path = std::path::Path::new(&file);
     match database.load_font_file(path) {
         Ok(_) => 0 as *const c_char,
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     }
 }
 
@@ -46,8 +44,7 @@ pub extern "C" fn fontdb_database_load_fonts_dir(database: &mut fontdb::Database
     let dir = unsafe { CStr::from_ptr(dir) };
     let dir = match dir.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     let path = std::path::Path::new(&dir);
     database.load_fonts_dir(path);
@@ -64,8 +61,7 @@ pub extern "C" fn fontdb_database_set_serif_family(database: &mut fontdb::Databa
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     database.set_serif_family(family);
     0 as *const c_char
@@ -76,8 +72,7 @@ pub extern "C" fn fontdb_database_set_sans_serif_family(database: &mut fontdb::D
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     database.set_sans_serif_family(family);
     0 as *const c_char
@@ -88,8 +83,7 @@ pub extern "C" fn fontdb_database_set_cursive_family(database: &mut fontdb::Data
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     database.set_cursive_family(family);
     0 as *const c_char
@@ -100,8 +94,7 @@ pub extern "C" fn fontdb_database_set_fantasy_family(database: &mut fontdb::Data
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     database.set_fantasy_family(family);
     0 as *const c_char
@@ -112,8 +105,7 @@ pub extern "C" fn fontdb_database_set_monospace_family(database: &mut fontdb::Da
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     database.set_monospace_family(family);
     0 as *const c_char
@@ -135,8 +127,7 @@ pub extern "C" fn usvg_options_set_resources_dir(options: &mut usvg::Options, di
     let dir = unsafe { CStr::from_ptr(dir) };
     let dir = match dir.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     options.resources_dir = Some(std::path::PathBuf::from(dir));
     0 as *const c_char
@@ -152,8 +143,7 @@ pub extern "C" fn usvg_options_set_font_family(options: &mut usvg::Options, fami
     let family = unsafe { CStr::from_ptr(family) };
     let family = match family.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     options.font_family = family;
     0 as *const c_char
@@ -169,8 +159,7 @@ pub extern "C" fn usvg_options_set_languages(options: &mut usvg::Options, langua
     let languages = unsafe { CStr::from_ptr(languages) };
     let languages = match languages.to_str() {
         Ok(v) => v.to_owned(),
-        Err(e) => return CStr::from_bytes_with_nul(
-            e.to_string().as_bytes()).unwrap().as_ptr(),
+        Err(e) => return CString::new(e.to_string()).unwrap().into_raw(),
     };
     let mut arr: Vec<String> = Vec::new();
     for token in languages.split_whitespace(){
