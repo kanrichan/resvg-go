@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	targetwasm = "target/wasm32-wasi/release/resvg.wasm"
+	targetwasm = "internal/target/wasm32-wasi/release/resvg.wasm"
 )
 
 func main() {
@@ -18,6 +18,7 @@ func main() {
 	carcmd := exec.Command("cargo", "build", "--release", "--target", "wasm32-wasi")
 	carcmd.Stdout = os.Stdout
 	carcmd.Stderr = os.Stderr
+	carcmd.Dir = "./internal"
 	err := carcmd.Run()
 	if err != nil {
 		panic(err)

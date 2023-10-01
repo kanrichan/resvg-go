@@ -7,7 +7,7 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
-path = "internal/resvg.rs"
+path = "resvg.rs"
 
 [dependencies]
 resvg = { version = "0.35.0", default-features = false, features = [ "text" ] }
@@ -23,3 +23,4 @@ wasm-opt = true
 lto = true
 opt-level = 3
 strip = true
+codegen-units = 1
