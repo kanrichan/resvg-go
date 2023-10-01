@@ -779,11 +779,11 @@ func TinySkiaPixmapEncodePng(ctx context.Context, module api.Module, pixmap int3
 	if fn == nil {
 		return nil, ErrWasmFunctionNotFound
 	}
-	r, err := MemoryMalloc(ctx, module, 8)
+	r, err := MemoryMalloc(ctx, module, 16)
 	if err != nil {
 		return nil, err
 	}
-	defer MemoryFree(ctx, module, r, 8)
+	defer MemoryFree(ctx, module, r, 16)
 	resp, err := fn.Call(
 		ctx,
 		api.EncodeI32(r),

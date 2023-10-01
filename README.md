@@ -39,6 +39,7 @@ defer pixmap.Close()
 
 tree, _ := worker.NewTreeFromData(svg, &Options{})
 defer tree.Close()
+tree.ConvertText(fontdb)
 tree.Render(TransformIdentity(), pixmap)
 
 png, _ := pixmap.EncodePNG()
