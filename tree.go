@@ -2,6 +2,7 @@ package resvg
 
 import (
 	_ "embed"
+	"path/filepath"
 	"strings"
 
 	"github.com/kanrichan/resvg-go/internal"
@@ -27,9 +28,13 @@ func (wk *Worker) NewTreeFromData(data []byte, options *Options) (*Tree, error) 
 	defer internal.UsvgOptionsDelete(wk.ctx, wk.mod, o)
 	if options != nil {
 		if options.ResourcesDir != "" {
+			p, err := filepath.Abs(options.ResourcesDir)
+			if err != nil {
+				return nil, err
+			}
 			internal.UsvgOptionsSetResourcesDir(
 				wk.ctx, wk.mod, o,
-				options.ResourcesDir,
+				p,
 			)
 		}
 		if options.Dpi != 0 {
@@ -132,7 +137,7 @@ func (t *Tree) GetSize() (float32, float32, error) {
 	if t.ptr == 0 {
 		return 0, 0, ErrPointerIsNil
 	}
-	width, err := internal.UsvgTreeGetHeight(t.wk.ctx, t.wk.mod, t.ptr)
+	width, err := internal.UsvgTreeGetWidth(t.wk.ctx, t.wk.mod, t.ptr)
 	if err != nil {
 		return 0, 0, err
 	}
