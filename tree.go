@@ -7,11 +7,14 @@ import (
 	"github.com/kanrichan/resvg-go/internal"
 )
 
+// Tree SVG tree
 type Tree struct {
 	wk  *Worker
 	ptr int32
 }
 
+// NewTreeFromData parses `Tree` from an SVG data.
+// Can contain a gzip compressed data.
 func (wk *Worker) NewTreeFromData(data []byte, options *Options) (*Tree, error) {
 	if !wk.used.CompareAndSwap(false, true) {
 		return nil, ErrWorkerIsBeingUsed
@@ -21,6 +24,7 @@ func (wk *Worker) NewTreeFromData(data []byte, options *Options) (*Tree, error) 
 	if err != nil {
 		return nil, err
 	}
+	defer internal.UsvgOptionsDelete(wk.ctx, wk.mod, o)
 	if options != nil {
 		if options.ResourcesDir != "" {
 			internal.UsvgOptionsSetResourcesDir(
@@ -77,7 +81,6 @@ func (wk *Worker) NewTreeFromData(data []byte, options *Options) (*Tree, error) 
 			)
 		}
 	}
-	defer internal.UsvgOptionsDelete(wk.ctx, wk.mod, o)
 	t, err := internal.UsvgTreeFromData(wk.ctx, wk.mod, data, o)
 	if err != nil {
 		return nil, err
@@ -85,6 +88,7 @@ func (wk *Worker) NewTreeFromData(data []byte, options *Options) (*Tree, error) 
 	return &Tree{wk, t}, nil
 }
 
+// Close cloes the `Tree` and recovers memory.
 func (t *Tree) Close() error {
 	if !t.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
@@ -101,7 +105,8 @@ func (t *Tree) Close() error {
 	return nil
 }
 
-func (t *Tree) ConvertText(fontdb *Fontdb) error {
+// ConvertText converts text nodes into `Tree`.
+func (t *Tree) ConvertText(fontdb *FontDB) error {
 	if t.wk != fontdb.wk {
 		return ErrPointerIsNil
 	}
@@ -118,6 +123,7 @@ func (t *Tree) ConvertText(fontdb *Fontdb) error {
 	return internal.UsvgTreeConvertText(t.wk.ctx, t.wk.mod, t.ptr, fontdb.ptr)
 }
 
+// GetSize returns Tree's width and height.
 func (t *Tree) GetSize() (float32, float32, error) {
 	if !t.wk.used.CompareAndSwap(false, true) {
 		return 0, 0, ErrWorkerIsBeingUsed
@@ -137,6 +143,7 @@ func (t *Tree) GetSize() (float32, float32, error) {
 	return width, height, nil
 }
 
+// Render renders the tree onto the pixmap.
 func (t *Tree) Render(transform transform, pixmap *Pixmap) error {
 	if t.wk != pixmap.wk {
 		return ErrPointerIsNil

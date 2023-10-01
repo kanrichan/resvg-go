@@ -2,11 +2,15 @@ package resvg
 
 import "github.com/kanrichan/resvg-go/internal"
 
+// Pixmap tinyskia pixmap
 type Pixmap struct {
 	wk  *Worker
 	ptr int32
 }
 
+// NewPixmap allocates a new `Pixmap`.
+// Pixmap's width is limited by int32::MAX/4.
+// `Pixmap` are not goroutine-safe, don't forget to close!
 func (wk *Worker) NewPixmap(width uint32, height uint32) (*Pixmap, error) {
 	if !wk.used.CompareAndSwap(false, true) {
 		return nil, ErrWorkerIsBeingUsed
@@ -19,6 +23,7 @@ func (wk *Worker) NewPixmap(width uint32, height uint32) (*Pixmap, error) {
 	return &Pixmap{wk, pm}, nil
 }
 
+// NewPixmapDecodePNG decodes a PNG data  into a `Pixmap`.
 func (wk *Worker) NewPixmapDecodePNG(data []byte) (*Pixmap, error) {
 	if !wk.used.CompareAndSwap(false, true) {
 		return nil, ErrWorkerIsBeingUsed
@@ -31,6 +36,7 @@ func (wk *Worker) NewPixmapDecodePNG(data []byte) (*Pixmap, error) {
 	return &Pixmap{wk, pm}, nil
 }
 
+// Close cloes the `Pixmap` and recovers memory.
 func (pm *Pixmap) Close() error {
 	if !pm.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
@@ -47,6 +53,7 @@ func (pm *Pixmap) Close() error {
 	return nil
 }
 
+// EncodePNG encodes pixmap into a PNG data.
 func (pm *Pixmap) EncodePNG() ([]byte, error) {
 	if !pm.wk.used.CompareAndSwap(false, true) {
 		return nil, ErrWorkerIsBeingUsed

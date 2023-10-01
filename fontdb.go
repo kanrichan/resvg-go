@@ -2,12 +2,15 @@ package resvg
 
 import "github.com/kanrichan/resvg-go/internal"
 
-type Fontdb struct {
+// FontDB font database
+type FontDB struct {
 	wk  *Worker
 	ptr int32
 }
 
-func (wk *Worker) NewFontDBDefault() (*Fontdb, error) {
+// NewFontDBDefault new a empty `FontDB` object in wasm.
+// `FontDB` are not goroutine-safe, don't forget to close!
+func (wk *Worker) NewFontDBDefault() (*FontDB, error) {
 	if !wk.used.CompareAndSwap(false, true) {
 		return nil, ErrWorkerIsBeingUsed
 	}
@@ -16,10 +19,11 @@ func (wk *Worker) NewFontDBDefault() (*Fontdb, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Fontdb{wk, db}, nil
+	return &FontDB{wk, db}, nil
 }
 
-func (db *Fontdb) Close() error {
+// Close cloes the `FontDB` and recovers memory.
+func (db *FontDB) Close() error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -35,7 +39,8 @@ func (db *Fontdb) Close() error {
 	return nil
 }
 
-func (db *Fontdb) LoadFontFile(file string) error {
+// LoadFontFile loads font file into the `FontDB`.
+func (db *FontDB) LoadFontFile(file string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -46,7 +51,8 @@ func (db *Fontdb) LoadFontFile(file string) error {
 	return internal.FontdbDatabaseLoadFontFile(db.wk.ctx, db.wk.mod, db.ptr, file)
 }
 
-func (db *Fontdb) LoadFontsDir(dir string) error {
+// LoadFontsDir loads font files from the selected directory into the `FontDB`.
+func (db *FontDB) LoadFontsDir(dir string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -57,7 +63,8 @@ func (db *Fontdb) LoadFontsDir(dir string) error {
 	return internal.FontdbDatabaseLoadFontsDir(db.wk.ctx, db.wk.mod, db.ptr, dir)
 }
 
-func (db *Fontdb) LoadFromData(data []byte) error {
+// LoadFontData loads font data into the `FontDB`.
+func (db *FontDB) LoadFontData(data []byte) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -68,7 +75,8 @@ func (db *Fontdb) LoadFromData(data []byte) error {
 	return internal.FontdbDatabaseLoadFontData(db.wk.ctx, db.wk.mod, db.ptr, data)
 }
 
-func (db *Fontdb) SetSerifFamily(family string) error {
+// SetSerifFamily sets the family that will be used by `Family::Serif`.
+func (db *FontDB) SetSerifFamily(family string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -79,7 +87,8 @@ func (db *Fontdb) SetSerifFamily(family string) error {
 	return internal.FontdbDatabaseSetSerifFamily(db.wk.ctx, db.wk.mod, db.ptr, family)
 }
 
-func (db *Fontdb) SetSansSerifFamily(family string) error {
+// SetSansSerifFamily sets the family that will be used by `Family::SansSerif`.
+func (db *FontDB) SetSansSerifFamily(family string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -90,7 +99,8 @@ func (db *Fontdb) SetSansSerifFamily(family string) error {
 	return internal.FontdbDatabaseSetSansSerifFamily(db.wk.ctx, db.wk.mod, db.ptr, family)
 }
 
-func (db *Fontdb) SetCursiveFamily(family string) error {
+// SetCursiveFamily sets the family that will be used by `Family::Cursive`.
+func (db *FontDB) SetCursiveFamily(family string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -101,7 +111,8 @@ func (db *Fontdb) SetCursiveFamily(family string) error {
 	return internal.FontdbDatabaseSetCursiveFamily(db.wk.ctx, db.wk.mod, db.ptr, family)
 }
 
-func (db *Fontdb) SetFantasyFamily(family string) error {
+// SetFantasyFamily sets the family that will be used by `Family::Fantasy`.
+func (db *FontDB) SetFantasyFamily(family string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -112,7 +123,8 @@ func (db *Fontdb) SetFantasyFamily(family string) error {
 	return internal.FontdbDatabaseSetFantasyFamily(db.wk.ctx, db.wk.mod, db.ptr, family)
 }
 
-func (db *Fontdb) SetMonospaceFamily(family string) error {
+// SetMonospaceFamily sets the family that will be used by `Family::Monospace`.
+func (db *FontDB) SetMonospaceFamily(family string) error {
 	if !db.wk.used.CompareAndSwap(false, true) {
 		return ErrWorkerIsBeingUsed
 	}
@@ -121,4 +133,16 @@ func (db *Fontdb) SetMonospaceFamily(family string) error {
 		return ErrPointerIsNil
 	}
 	return internal.FontdbDatabaseSetMonospaceFamily(db.wk.ctx, db.wk.mod, db.ptr, family)
+}
+
+// Len returns the number of font faces in the `FontDB`
+func (db *FontDB) Len() (int32, error) {
+	if !db.wk.used.CompareAndSwap(false, true) {
+		return 0, ErrWorkerIsBeingUsed
+	}
+	defer db.wk.used.Store(false)
+	if db.ptr == 0 {
+		return 0, ErrPointerIsNil
+	}
+	return internal.FontdbDatabaseLen(db.wk.ctx, db.wk.mod, db.ptr)
 }

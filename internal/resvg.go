@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"errors"
-	"fmt"
 
 	"github.com/tetratelabs/wazero/api"
 )
@@ -803,7 +802,6 @@ func TinySkiaPixmapEncodePng(ctx context.Context, module api.Module, pixmap int3
 	if result.ok {
 		respptr := uint32(result.data >> 32)
 		resplen := uint32(result.data)
-		fmt.Println(respptr, resplen)
 		defer MemoryFree(ctx, module, int32(respptr), int(resplen))
 		b, f := module.Memory().Read(respptr, resplen)
 		if !f {
