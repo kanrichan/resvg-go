@@ -16,7 +16,7 @@ func TestRender(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer worker.Close()
-	tree, err := worker.NewTree(svg, nil)
+	tree, err := worker.NewTreeFromData(svg, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -678,18 +678,36 @@ func TinySkiaPixmapNew(ctx context.Context, module api.Module, width uint32, hei
 	if fn == nil {
 		return 0, ErrWasmFunctionNotFound
 	}
+	r, err := MemoryMalloc(ctx, module, 8)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, r, 8)
 	resp, err := fn.Call(
 		ctx,
+		api.EncodeI32(r),
 		api.EncodeU32(width),
 		api.EncodeU32(height),
 	)
 	if err != nil {
 		return 0, err
 	}
-	if len(resp) != 1 || resp[0] == 0 {
+	if len(resp) != 0 {
 		return 0, ErrWasmReturnInvaild
 	}
-	return api.DecodeI32(resp[0]), nil
+	result, err := Result32Read(ctx, module, r)
+	if err != nil {
+		return 0, err
+	}
+	if result.ok {
+		return result.data, nil
+	}
+	error, err := CStrRead(ctx, module, result.data)
+	if err != nil {
+		return 0, err
+	}
+	defer MemoryFree(ctx, module, result.data, len(error)+1)
+	return 0, errors.New(error)
 }
 
 func TinySkiaPixmapDecodePNG(ctx context.Context, module api.Module, data []byte) (int32, error) {

@@ -208,12 +208,12 @@ pub extern "C" fn usvg_options_set_default_size(options: &mut usvg::Options, wid
 }
 
 #[no_mangle]
-pub extern "C" fn tiny_skia_pixmap_new(width: u32, height: u32) -> *mut tiny_skia::Pixmap {
+pub extern "C" fn tiny_skia_pixmap_new(width: u32, height: u32) -> Result<*mut tiny_skia::Pixmap, *const c_char> {
     let pixmap = match tiny_skia::Pixmap::new(width, height) {
         Some(v) => v,
-        None => return std::ptr::null_mut(),
+        None => return Result::Err(CString::new("width and height are positive and non-zero").unwrap().into_raw()),
     };
-    Box::into_raw(pixmap.into())
+    Result::Ok(Box::into_raw(pixmap.into()))
 }
 
 #[no_mangle]
